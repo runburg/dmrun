@@ -7,5 +7,5 @@ computing p2som
 0 nan vals in p2som
 computing Jsom
 0 nans in Jsom
-total j factor 0.18386525968345002
-angular spread 0.5265733655966739
+total j factor 12.584167431681232
+angular spread 0.08887723422705972
