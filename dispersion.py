@@ -53,15 +53,13 @@ for fil in rho_dict.keys():
         os.mkdir(fil)
     except FileExistsError:
         pass
-    print('hi')
     os.chdir(fil)
     f = open('output.txt', 'w')
-    # sys.stdout = f
+    sys.stdout = f
 
     # Setting a range of what our r̃ values will be
     r_vals = np.logspace(-3, 2, num=lim)
 
-    np.save('./rvals.npy', r_vals)
 
     # def rho(r):
     #     return 1 / (r * (1 + r)**2)
@@ -91,7 +89,6 @@ for fil in rho_dict.keys():
     # first derivative of rho(r)
     first_derv = np.gradient(rho_vals, phi_vals)
 
-    print(phi_vals[3], phi_vals[-3])
     # second derivative of rho(r)
     sec_derv = np.gradient(first_derv, phi_vals)
     sec_derv[sec_derv < 0] = 0
@@ -154,7 +151,6 @@ for fil in rho_dict.keys():
     # print(phi_vals[0], phi_vals[-1], oldes[0], oldes[-1])
     recovered_rho_old = integrate.simps(4*np.sqrt(2)*np.pi*oldfs[:, np.newaxis]*np.sqrt((oldes[:, np.newaxis]-oldes[np.newaxis, :]).T*np.tri(len(oldes)).T), oldes, axis=0)
 
-    print(phi_vals[3], phi_vals[-3])
     if PLOT is True:
         fig, (ax, ax1) = plt.subplots(nrows=2)
         ax.plot(r_vals, np.flip(rho_vals), label='rho')
@@ -182,7 +178,7 @@ for fil in rho_dict.keys():
         fig.savefig('recovered_rho_residual.pdf')
 
 
-        fig, (ax, ax2) = plt.subplots(nrows=2)
+        fig, ax = plt.subplots()
         rescale = 1 / oldes.max() * phi_vals[3:-3].max()
         yrescale = fvals[30] / oldfs[30]
         # yrescale = phi_vals[3:-3][-1] / oldes[0]
@@ -197,19 +193,6 @@ for fil in rho_dict.keys():
         ax.set_xlabel('E')
         ax.set_ylabel('f(E)')
         ax.legend()
-
-        print(phi_vals[3], phi_vals[-3])
-        es = np.abs(phi_vals[3:-3] + phi_vals[3])
-        es = np.abs(np.flip(phi_vals[3:-3]))
-        es = np.flip(-phi_vals[3:-3]) + 1
-        # es = np.flip(phi_vals[3:-3]) + 1
-        ax2.plot(es , np.abs(np.gradient(np.flip(fvals), es)), label='f(E) slope')
-        ax2.plot(es, np.abs(-5/2 * 3/16/np.sqrt(2) / np.pi * es**(-7/2)), label='Analytic solution')
-        ax2.set_xscale('log')
-        ax2.set_xlabel('E')
-        ax2.set_ylabel('df/dE')
-        ax2.set_yscale('log')
-        ax2.legend()
         fig.savefig('fecomparisons.pdf')
 
     phi_vals = np.flip(-phi_vals)
@@ -222,42 +205,41 @@ for fil in rho_dict.keys():
     # vvals = np.linspace(0, np.sqrt(-2*phi_vals[0]), num=lim)
     vvals = np.logspace(-6, np.log10(np.sqrt(-2*phi_vals[0])), num=lim)
 
-    ######
-    #frv = np.zeros((len(r_vals), len(vvals)))
-    #finterp = i1d(phi_vals[3:-3], fvals, fill_value=0, bounds_error=False)
-    ## i is the row index (r values)
-    #for i in range(len(r_vals)):
-    #    # j is the column index (v values)
-    #    for j in range(len(vvals)):
-    #        E = vvals[j]**2 / 2 + phi_vals[i]
-    #        if E < 0:
-    #            frv[i, j] = finterp(E)
-
-    #    # print(frv)
-
-    #f = i2d(r_vals, vvals, frv.T)
-    #print('computing p2som')
-
-    #integrand = frv[:, :, np.newaxis] * frv[:, np.newaxis, :] * vvals[np.newaxis, :, np.newaxis]**2 * vvals[np.newaxis, np.newaxis, :] * np.tri(len(vvals))[np.newaxis, :, :]
-    #p2_som = integrate.simps(integrate.simps(integrand, vvals, axis=2), vvals, axis=1)
-    #np.save('p2_sommerfeld.npy', p2_som) # save
     #####
+    frv = np.zeros((len(r_vals), len(vvals)))
+    finterp = i1d(phi_vals[3:-3], fvals, fill_value=0, bounds_error=False)
+    # i is the row index (r values)
+    for i in range(len(r_vals)):
+        # j is the column index (v values)
+        for j in range(len(vvals)):
+            E = vvals[j]**2 / 2 + phi_vals[i]
+            if E < 0:
+                frv[i, j] = finterp(E)
+
+        # print(frv)
+
+    np.savez('./nfw_frv.npz', frv=frv, vvals=vvals, rvals=r_vals)
+    print('Saved frv')
+    f = i2d(r_vals, vvals, frv.T)
+    print('computing p2som')
+
+    integrand = frv[:, :, np.newaxis] * frv[:, np.newaxis, :] * vvals[np.newaxis, :, np.newaxis]**2 * vvals[np.newaxis, np.newaxis, :] * np.tri(len(vvals))[np.newaxis, :, :]
+    p2_som = integrate.simps(integrate.simps(integrand, vvals, axis=2), vvals, axis=1)
+    np.save('p2_sommerfeld.npy', p2_som) # save
+    ####
 
     p2_som = np.load('p2_sommerfeld.npy') # save
     print(np.sum(np.isnan(p2_som)), 'nan vals in p2som')
 
     if PLOT is True:
         plt.cla()
-        fig, ax = plt.subplots()
-        plt.plot(r_vals, p2_som, label='numerical')
-        plt.plot(r_vals, 3 * np.pi / 16 * r_vals**(-2.5) / (32 * np.pi**2), label='analytic')
+        plt.plot(r_vals, p2_som)
         plt.xscale('log')
         plt.yscale('log')
         plt.xlabel('r')
         plt.ylabel('p2 som')
-        plt.legend()
         plt.xlim(left=1e-3, right=1e2)
-        plt.ylim(bottom=1e3)
+        # plt.ylim(bottom=10)
 
         # plt.show()
         # p2isnan = np.isnan(p2_som)
@@ -276,14 +258,14 @@ for fil in rho_dict.keys():
         f = lambda r: 1 / np.sqrt(1-(theta/(r + 1e-40))**2) * (32*np.pi**2) * rho_r_som_interp(r + 1e-40)
         return integrate.quad(f, theta, 100, limit=lim, points=r_vals)[0]
 
+    ####
+    J_som = [J_somm(theta) for theta in theta_vals[:-1]]
+    print(np.sum(np.isnan(J_som)), 'nans in Jsom')
+
+
+    np.save('J_som_vals.npy', J_som) # save
+    np.save('theta_vals.npy', theta_vals[:-1])
     #####
-    #J_som = [J_somm(theta) for theta in theta_vals[:-1]]
-    #print(np.sum(np.isnan(J_som)), 'nans in Jsom')
-
-
-    #np.save('J_som_vals.npy', J_som) # save
-    #np.save('theta_vals.npy', theta_vals[:-1])
-    ######
     theta_vals = np.load('theta_vals.npy')
     J_som = np.load('J_som_vals.npy') # save
 
