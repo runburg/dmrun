@@ -13,6 +13,7 @@ orig_stdout = sys.stdout
 
 lim = 1100
 PLOT = True
+ANALYTIC = False
 
 def nfw_gamma(r, gamma):
     return r**-gamma * (1 + r)**-(3 - gamma)
@@ -47,6 +48,8 @@ rho_dict = {
         # 'moore': lambda r: moore(r),
 }
 
+gamma = 1.0
+
 
 for fil in rho_dict.keys():
     try:
@@ -59,7 +62,7 @@ for fil in rho_dict.keys():
     # sys.stdout = f
 
     # Setting a range of what our r̃ values will be
-    r_vals = np.logspace(-3, 2, num=lim)
+    r_vals = np.logspace(-4, 2, num=lim)
 
     np.save('./rvals.npy', r_vals)
 
@@ -72,43 +75,65 @@ for fil in rho_dict.keys():
 
     def phi_y(x):
         f = lambda y: y**2 * rho(y)
-        return integrate.quad(f, 0, x, points=r_vals[::5], limit=lim // 3)[0]
+        return integrate.quad(f, 0, x, points=r_vals[:50], limit=lim//2)[0]
 
 
     def phi_x(r):
-        f = lambda x: 1 / x**2 * phi_y(x)
-        return -integrate.quad(f, r, 1000, points=r_vals[::5], limit=lim // 3)[0]
+        f = lambda x: 1 / (x**2 + 1e-100) * phi_y(x)
+        return -integrate.quad(f, r, 0, points=r_vals[:53], limit=lim//2)[0]
 
 
     print('computing phi vals')
 
-    ####3
-    #phi_vals = [phi_x(rr) for rr in r_vals]
+    ######3
+    ##phi_vals = np.array([phi_x(rr) for rr in r_vals]) 
     #np.save('./phivals.npy', phi_vals)
-    ####
+    #####
 
     phi_vals = np.load('./phivals.npy')
+
+
+    def analytic_phi(r):
+        return r**(2 - gamma) / ((3 - gamma) * (2 - gamma))
+
+
+    if ANALYTIC is True:
+        small_r_approx = (r_vals < 0.001)
+        phi_vals[small_r_approx] = analytic_phi(r_vals[small_r_approx])
+
+
+    if PLOT is True:
+        fig, ax = plt.subplots()
+        ax.plot(r_vals, phi_vals, label='our phi')
+        ax.plot(r_vals, analytic_phi(r_vals), label='analytic', ls='--')
+        ax.set_xscale('log')
+        ax.set_yscale('log')
+        ax.set_xlabel('r')
+        ax.set_ylabel('phi')
+        ax.legend()
+        fig.savefig('./phi_comparison.pdf')
+
     # first derivative of rho(r)
     first_derv = np.gradient(rho_vals, phi_vals)
 
     print(phi_vals[3], phi_vals[-3])
     # second derivative of rho(r)
     sec_derv = np.gradient(first_derv, phi_vals)
-    sec_derv[sec_derv < 0] = 0
 
     # making the second derivative a function
-    sec_derv_func = i1d(phi_vals, sec_derv, fill_value=0, bounds_error=False)
-    integrand = i1d(phi_vals, sec_derv, fill_value=0, bounds_error=False)
+    sec_derv_func = i1d(phi_vals, sec_derv, fill_value='extrapolate', bounds_error=False)
 
     print('computing dm phase space distribution')
     # plot with new phi values
 
+    def f_analytic(E, gamma=gamma):
+        return 3 / (16 * np.sqrt(2) * np.pi) * E **((gamma - 6) / (2 * (2 - gamma)))
 
     def f(E):
-        return integrate.quad(lambda x: 1 / (np.sqrt(8) * np.pi**2) * sec_derv_func(x) / np.sqrt(x * 0.999999999999 - E), E, 0, points=phi_vals[3:-3:3], limit=lim)[0]
+        return integrate.quad(lambda x: 1 / (np.sqrt(8) * np.pi**2) * sec_derv_func(x) / np.sqrt(x - E), E, 1, points=phi_vals, limit=lim+1)[0]
 
     #####
-    #fval = [f(Eval) for Eval in phi_vals[3:-3]] # print(fval[:10])
+    #fval = [f(Eval) for Eval in phi_vals] # print(fval[:10])
     #print(np.sum(np.isnan(fval)), 'nans in fvals')
     #fvals = np.nan_to_num(fval)
 
@@ -123,7 +148,6 @@ for fil in rho_dict.keys():
     # fe, _, es = undim('./fe_GC_NFW_nounits.txt')
 
     # print(len(oldf['v']))
-    num = 1000
 
     # oldes = oldf['v'][::num]**2/2+np.array([phi_x(rr) for rr in oldf['r'][::num]])
     # np.savez('./oldFEs.npz', oldes=oldes, oldf=oldf['fe'][::num])
@@ -138,28 +162,19 @@ for fil in rho_dict.keys():
     of.close()
 
     # comparing fes
-    # print('max of fe', oldes[oldfs.argmax()], phi_vals[3:-3][fvals.argmax()])
-    # print('shift of fes', oldes
-    # print('int of fe', np.trapz((4*np.sqrt(2)*np.pi*fvals*np.sqrt(phi_vals[3:-3]-phi_vals[15]))[12:], phi_vals[3:-3][12:]), rho(r_vals[15]))
 
-    phi_vals = np.flip(np.abs(phi_vals))
-    fvals = np.flip(np.abs(fvals))
-    r_vals = np.flip(r_vals)
+    recovered_rho_new = integrate.simps(4*np.sqrt(2)*np.pi*fvals[np.newaxis, :]*np.sqrt(np.abs(phi_vals[:, np.newaxis]-phi_vals[np.newaxis, :])*np.tri(len(phi_vals)).T), phi_vals, axis=-1)
 
-    recovered_rho_new = integrate.simps(4*np.sqrt(2)*np.pi*fvals[:, np.newaxis]*np.sqrt((phi_vals[3:-3][:, np.newaxis]-phi_vals[3:-3][np.newaxis, :]).T*np.tri(len(phi_vals[3:-3])).T), phi_vals[3:-3], axis=0)
+    recovered_rho_old = integrate.simps(4*np.sqrt(2)*np.pi*oldfs[:, np.newaxis]*np.sqrt(np.abs(oldes[:, np.newaxis]-oldes[np.newaxis, :])*np.tri(len(oldes)).T), oldes, axis=0)
 
-    # print((phi_vals[3:-3][:, np.newaxis]-phi_vals[3:-3][np.newaxis, :]).T*np.tri(len(phi_vals[3:-3])).T)
-    # print(recovered_rho_new)
-    # print((oldes[:, np.newaxis]-oldes[np.newaxis, :]).T*np.tri(len(oldes)).T)
-    # print(phi_vals[0], phi_vals[-1], oldes[0], oldes[-1])
-    recovered_rho_old = integrate.simps(4*np.sqrt(2)*np.pi*oldfs[:, np.newaxis]*np.sqrt((oldes[:, np.newaxis]-oldes[np.newaxis, :]).T*np.tri(len(oldes)).T), oldes, axis=0)
+    recovered_rho_analytic = integrate.simps(4*np.sqrt(2)*np.pi*f_analytic(phi_vals)[np.newaxis, :]*np.sqrt(np.abs(phi_vals[:, np.newaxis]-phi_vals[np.newaxis, :]).T*np.tri(len(phi_vals)).T), phi_vals, axis=-1)
 
-    print(phi_vals[3], phi_vals[-3])
     if PLOT is True:
         fig, (ax, ax1) = plt.subplots(nrows=2)
-        ax.plot(r_vals, np.flip(rho_vals), label='rho')
+        ax.plot(r_vals, rho_vals, label='rho')
         ax.plot(oldrs, recovered_rho_old, label='rho from kim fe')
-        ax.plot(r_vals[3:-3], recovered_rho_new, label='rho from our fe')
+        ax.plot(r_vals, recovered_rho_analytic, label='rho analytic', ls='-.')
+        ax.plot(r_vals, recovered_rho_new, label='rho from our fe', ls='--')
         ax.set_xscale('log')
         ax.set_yscale('log')
         ax.set_xlabel('r')
@@ -172,8 +187,9 @@ for fil in rho_dict.keys():
         fig.savefig('recovered_rho.pdf')
 
         fig, ax = plt.subplots()
-        ax.plot(oldrs, (recovered_rho_old - rho(oldrs))/rho(oldrs), label='rho from kim fe')
-        ax.plot(r_vals[3:-3], (recovered_rho_new - rho(r_vals[3:-3]))/rho(r_vals[3:-3]), label='rho from our fe')
+        # ax.plot(oldrs, (recovered_rho_old - rho(oldrs))/rho(oldrs), label='rho from kim fe')
+        ax.plot(r_vals, (recovered_rho_analytic - rho(r_vals))/rho(r_vals), label='rho analytic', ls='-.')
+        ax.plot(r_vals, (recovered_rho_new - rho(r_vals))/rho(r_vals), label='rho from our fe', ls='--')
         ax.set_xscale('log')
         ax.set_yscale('log')
         ax.set_xlabel('r')
@@ -183,28 +199,24 @@ for fil in rho_dict.keys():
 
 
         fig, (ax, ax2) = plt.subplots(nrows=2)
-        rescale = 1 / oldes.max() * phi_vals[3:-3].max()
+        rescale = 1 / oldes.max() * (phi_vals.max()+1)
         yrescale = fvals[30] / oldfs[30]
         # yrescale = phi_vals[3:-3][-1] / oldes[0]
         # print('rescaled by', rescale)
         # print('y rescaled by', yrescale)
         # rescale = 1
         # yrescale = 1
-        ax.plot(oldes * rescale, oldfs * yrescale, label='old fe')
-        ax.plot(np.abs(phi_vals[3:-3]), fvals, label='new fe')
-        # ax.set_xscale('log')
+        # ax.plot(oldes, oldfs, label='kims fe')
+        ax.plot(phi_vals, fvals, label='new fe')
+        ax.plot(phi_vals, f_analytic(phi_vals), label='analytic', ls='--')
+        ax.set_xscale('log')
         ax.set_yscale('log')
         ax.set_xlabel('E')
         ax.set_ylabel('f(E)')
         ax.legend()
 
-        print(phi_vals[3], phi_vals[-3])
-        es = np.abs(phi_vals[3:-3] + phi_vals[3])
-        es = np.abs(np.flip(phi_vals[3:-3]))
-        es = np.flip(-phi_vals[3:-3]) + 1
-        # es = np.flip(phi_vals[3:-3]) + 1
-        ax2.plot(es , np.abs(np.gradient(np.flip(fvals), es)), label='f(E) slope')
-        ax2.plot(es, np.abs(-5/2 * 3/16/np.sqrt(2) / np.pi * es**(-7/2)), label='Analytic solution')
+        ax2.plot(phi_vals, np.abs(np.gradient(fvals, phi_vals)), label='f(E) slope')
+        ax2.plot(phi_vals, np.abs(-5/2 * 3/16/np.sqrt(2) / np.pi * phi_vals**(-7/2)), label='Analytic solution')
         ax2.set_xscale('log')
         ax2.set_xlabel('E')
         ax2.set_ylabel('df/dE')
@@ -212,52 +224,48 @@ for fil in rho_dict.keys():
         ax2.legend()
         fig.savefig('fecomparisons.pdf')
 
-    phi_vals = np.flip(-phi_vals)
-    fvals = np.flip(np.abs(fvals))
-    r_vals = np.flip(r_vals)
-
 
     print('changing variables')
 
     # vvals = np.linspace(0, np.sqrt(-2*phi_vals[0]), num=lim)
-    vvals = np.logspace(-6, np.log10(np.sqrt(-2*phi_vals[0])), num=lim)
+    vvals = np.logspace(-5, np.log10(np.sqrt(2)), num=lim+1)
 
-    ######
-    #frv = np.zeros((len(r_vals), len(vvals)))
-    #finterp = i1d(phi_vals[3:-3], fvals, fill_value=0, bounds_error=False)
-    ## i is the row index (r values)
-    #for i in range(len(r_vals)):
-    #    # j is the column index (v values)
-    #    for j in range(len(vvals)):
-    #        E = vvals[j]**2 / 2 + phi_vals[i]
-    #        if E < 0:
-    #            frv[i, j] = finterp(E)
-
-    #    # print(frv)
-
-    #f = i2d(r_vals, vvals, frv.T)
-    #print('computing p2som')
-
-    #integrand = frv[:, :, np.newaxis] * frv[:, np.newaxis, :] * vvals[np.newaxis, :, np.newaxis]**2 * vvals[np.newaxis, np.newaxis, :] * np.tri(len(vvals))[np.newaxis, :, :]
-    #p2_som = integrate.simps(integrate.simps(integrand, vvals, axis=2), vvals, axis=1)
-    #np.save('p2_sommerfeld.npy', p2_som) # save
     #####
+    frv = np.zeros((len(r_vals), len(vvals)))
+    finterp = i1d(phi_vals, fvals, fill_value=0, bounds_error=False)
+    # i is the row index (r values)
+    for i in range(len(r_vals)):
+        # j is the column index (v values)
+        for j in range(len(vvals)):
+            E = vvals[j]**2 / 2 + phi_vals[i]
+            if E < 1:
+                frv[i, j] = finterp(E)
+
+    print(np.sum(frv.flatten() != 0))
+
+    f = i2d(r_vals, vvals, frv.T)
+    print('computing p2som')
+
+    integrand = frv[:, :, np.newaxis] * frv[:, np.newaxis, :] * vvals[np.newaxis, :, np.newaxis]**2 * vvals[np.newaxis, np.newaxis, :] * np.tri(len(vvals)).T[np.newaxis, :, :]
+    p2_som = integrate.simps(integrate.simps(integrand, vvals, axis=2), vvals, axis=1)
+    print(p2_som)
+    np.save('p2_sommerfeld.npy', p2_som) # save
+    ####
 
     p2_som = np.load('p2_sommerfeld.npy') # save
     print(np.sum(np.isnan(p2_som)), 'nan vals in p2som')
 
     if PLOT is True:
-        plt.cla()
         fig, ax = plt.subplots()
-        plt.plot(r_vals, p2_som, label='numerical')
-        plt.plot(r_vals, 3 * np.pi / 16 * r_vals**(-2.5) / (32 * np.pi**2), label='analytic')
-        plt.xscale('log')
-        plt.yscale('log')
-        plt.xlabel('r')
-        plt.ylabel('p2 som')
-        plt.legend()
-        plt.xlim(left=1e-3, right=1e2)
-        plt.ylim(bottom=1e3)
+        ax.plot(r_vals, p2_som, label='numerical')
+        ax.plot(r_vals, 3 * np.pi / 16 * r_vals**(-2.5) / (32 * np.pi**2), label='analytic', ls='--')
+        ax.set_xscale('log')
+        ax.set_yscale('log')
+        ax.set_xlabel('r')
+        ax.set_ylabel('p2 som')
+        ax.legend()
+        ax.set_xlim(left=1e-3, right=1e2)
+        # ax.set_ylim(bottom=1e3)
 
         # plt.show()
         # p2isnan = np.isnan(p2_som)
@@ -296,7 +304,7 @@ for fil in rho_dict.keys():
         ax.plot(theta_vals, J_som, label='new code')
         ax.plot(radius, hsomn, label='old cod')
 
-        ax.plot(theta_vals, 10**-2.45*1.18*theta_vals**-1.54*32*np.pi**2, label='mathematica')
+        ax.plot(theta_vals, 10**-2.45*1.18*theta_vals**-1.54*32*np.pi**2, label='mathematica', ls='--')
         ax.set_xscale('log')
         ax.set_yscale('log')
         ax.set_xlabel('theta')
