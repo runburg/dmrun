@@ -34,35 +34,36 @@ rho_dict = {
         # 'nfw0-8': lambda r: nfw_gamma(r, 0.8),
         # 'nfw0-9': lambda r: nfw_gamma(r, 0.9),
         'nfw1-0': lambda r: nfw_gamma(r, 1.0),
-        # 'nfw1-1': lambda r: nfw_gamma(r, 1.1),
-        # 'nfw1-2': lambda r: nfw_gamma(r, 1.2),
-        # 'nfw1-27': lambda r: nfw_gamma(r, 1.27),
-        # 'nfw1-3': lambda r: nfw_gamma(r, 1.3),
-        # 'nfw1-4': lambda r: nfw_gamma(r, 1.4),
-        # 'einasto0-13': lambda r: einasto(r, 0.13),
-        # 'einasto0-16': lambda r: einasto(r, 0.16),
-        # 'einasto0-17': lambda r: einasto(r, 0.17),
-        # 'einasto0-20': lambda r: einasto(r, 0.20),
-        # 'einasto0-24': lambda r: einasto(r, 0.24),
-        # 'burkert': lambda r: burkert(r),
-        # 'moore': lambda r: moore(r),
+        'nfw1-1': lambda r: nfw_gamma(r, 1.1),
+        'nfw1-2': lambda r: nfw_gamma(r, 1.2),
+        'nfw1-3': lambda r: nfw_gamma(r, 1.3),
+        'nfw1-4': lambda r: nfw_gamma(r, 1.4),
+        'nfw1-27': lambda r: nfw_gamma(r, 1.27),
+        'einasto0-13': lambda r: einasto(r, 0.13),
+        'einasto0-16': lambda r: einasto(r, 0.16),
+        'einasto0-17': lambda r: einasto(r, 0.17),
+        'einasto0-20': lambda r: einasto(r, 0.20),
+        'einasto0-24': lambda r: einasto(r, 0.24),
+        'burkert': lambda r: burkert(r),
+        'moore': lambda r: moore(r),
 }
 
-gamma = 1.0
+gamma = 0.9
 
 
 for fil in rho_dict.keys():
+    gamma += 0.1
     try:
         os.mkdir(fil)
     except FileExistsError:
         pass
-    print('hi')
     os.chdir(fil)
     f = open('output.txt', 'w')
     # sys.stdout = f
 
+    print('\n\n', fil, '\n')
     # Setting a range of what our r̃ values will be
-    r_vals = np.logspace(-4, 2, num=lim)
+    r_vals = np.logspace(-6, 2, num=lim)
 
     np.save('./rvals.npy', r_vals)
 
@@ -80,13 +81,13 @@ for fil in rho_dict.keys():
 
     def phi_x(r):
         f = lambda x: 1 / (x**2 + 1e-100) * phi_y(x)
-        return -integrate.quad(f, r, 0, points=r_vals[:53], limit=lim//2)[0]
+        return -integrate.quad(f, r, 0, points=r_vals[:50], limit=lim//2)[0]
 
 
     print('computing phi vals')
 
     ######3
-    ##phi_vals = np.array([phi_x(rr) for rr in r_vals]) 
+    #phi_vals = np.array([phi_x(rr) for rr in r_vals]) 
     #np.save('./phivals.npy', phi_vals)
     #####
 
@@ -103,7 +104,7 @@ for fil in rho_dict.keys():
 
 
     if PLOT is True:
-        fig, ax = plt.subplots()
+        fig, (ax, ax2) = plt.subplots(nrows=2, sharex=True)
         ax.plot(r_vals, phi_vals, label='our phi')
         ax.plot(r_vals, analytic_phi(r_vals), label='analytic', ls='--')
         ax.set_xscale('log')
@@ -111,12 +112,16 @@ for fil in rho_dict.keys():
         ax.set_xlabel('r')
         ax.set_ylabel('phi')
         ax.legend()
+
+        ax2.plot(r_vals, (phi_vals - analytic_phi(r_vals))/analytic_phi(r_vals))
+        ax2.set_ylabel('percent residual')
+        ax2.set_xlabel('r')
+        ax2.set_ylim(bottom=-.1, top=.1)
         fig.savefig('./phi_comparison.pdf')
 
     # first derivative of rho(r)
     first_derv = np.gradient(rho_vals, phi_vals)
 
-    print(phi_vals[3], phi_vals[-3])
     # second derivative of rho(r)
     sec_derv = np.gradient(first_derv, phi_vals)
 
@@ -198,7 +203,7 @@ for fil in rho_dict.keys():
         fig.savefig('recovered_rho_residual.pdf')
 
 
-        fig, (ax, ax2) = plt.subplots(nrows=2)
+        fig, (ax, ax2, ax3) = plt.subplots(nrows=3, sharex=True)
         rescale = 1 / oldes.max() * (phi_vals.max()+1)
         yrescale = fvals[30] / oldfs[30]
         # yrescale = phi_vals[3:-3][-1] / oldes[0]
@@ -222,49 +227,69 @@ for fil in rho_dict.keys():
         ax2.set_ylabel('df/dE')
         ax2.set_yscale('log')
         ax2.legend()
+
+        ax3.plot(phi_vals, (fvals - f_analytic(phi_vals))/f_analytic(phi_vals))
+        ax3.set_xlabel('E')
+        ax3.set_ylim(bottom=-.1, top=.1)
+        ax3.set_ylabel('percent residual')
+
         fig.savefig('fecomparisons.pdf')
 
 
     print('changing variables')
 
     # vvals = np.linspace(0, np.sqrt(-2*phi_vals[0]), num=lim)
-    vvals = np.logspace(-5, np.log10(np.sqrt(2)), num=lim+1)
+    vvals = np.logspace(-7, np.log10(np.sqrt(2)), num=lim+1)
 
+    fvals = fvals[5:-5]
+    phi_vals = phi_vals[5:-5]
+    r_vals = r_vals[5:-5]
+    ######
+    #frv = np.zeros((len(r_vals), len(vvals)))
+    #finterp = i1d(phi_vals, fvals, fill_value='extrapolate', bounds_error=False)
+    ## i is the row index (r values)
+    #for i in range(len(r_vals)):
+    #    # j is the column index (v values)
+    #    for j in range(len(vvals)):
+    #        E = vvals[j]**2 / 2 + phi_vals[i]
+    #        if E < 1:
+    #            frv[i, j] = finterp(E)
+
+    #print('nonzero frv', np.sum(frv.flatten() != 0))
+
+    #f = i2d(r_vals, vvals, frv.T)
+    #print('computing p2som')
+
+    #integrand = frv[:, :, np.newaxis] * frv[:, np.newaxis, :] * vvals[np.newaxis, :, np.newaxis]**2 * vvals[np.newaxis, np.newaxis, :] * np.tri(len(vvals)).T[np.newaxis, :, :]
+    #p2_som = integrate.simps(integrate.simps(integrand, vvals, axis=2), vvals, axis=1)
+    #print(p2_som)
+    #np.save('p2_sommerfeld.npy', p2_som) # save
     #####
-    frv = np.zeros((len(r_vals), len(vvals)))
-    finterp = i1d(phi_vals, fvals, fill_value=0, bounds_error=False)
-    # i is the row index (r values)
-    for i in range(len(r_vals)):
-        # j is the column index (v values)
-        for j in range(len(vvals)):
-            E = vvals[j]**2 / 2 + phi_vals[i]
-            if E < 1:
-                frv[i, j] = finterp(E)
-
-    print(np.sum(frv.flatten() != 0))
-
-    f = i2d(r_vals, vvals, frv.T)
-    print('computing p2som')
-
-    integrand = frv[:, :, np.newaxis] * frv[:, np.newaxis, :] * vvals[np.newaxis, :, np.newaxis]**2 * vvals[np.newaxis, np.newaxis, :] * np.tri(len(vvals)).T[np.newaxis, :, :]
-    p2_som = integrate.simps(integrate.simps(integrand, vvals, axis=2), vvals, axis=1)
-    print(p2_som)
-    np.save('p2_sommerfeld.npy', p2_som) # save
-    ####
 
     p2_som = np.load('p2_sommerfeld.npy') # save
+    p2_som[p2_som < 1e-6] = 0
     print(np.sum(np.isnan(p2_som)), 'nan vals in p2som')
 
+
+    def p2_som_analytic(r):
+        return 3 * np.pi / 16 * r_vals**(-2.5) / (32 * np.pi**2)
+
+
     if PLOT is True:
-        fig, ax = plt.subplots()
+        fig, (ax, ax2) = plt.subplots(nrows=2, sharex=True)
         ax.plot(r_vals, p2_som, label='numerical')
-        ax.plot(r_vals, 3 * np.pi / 16 * r_vals**(-2.5) / (32 * np.pi**2), label='analytic', ls='--')
+        ax.plot(r_vals, p2_som_analytic(r_vals), label='analytic', ls='--')
         ax.set_xscale('log')
         ax.set_yscale('log')
         ax.set_xlabel('r')
         ax.set_ylabel('p2 som')
         ax.legend()
-        ax.set_xlim(left=1e-3, right=1e2)
+        ax.set_xlim(right=1e2)
+
+        ax2.plot(r_vals, (p2_som - p2_som_analytic(r_vals))/p2_som_analytic(r_vals))
+        ax2.set_ylabel('percent residual')
+        ax2.set_ylim(bottom=-.1, top=.1)
+        ax2.set_xlabel('r')
         # ax.set_ylim(bottom=1e3)
 
         # plt.show()
@@ -272,26 +297,28 @@ for fil in rho_dict.keys():
         # fit = np.polyfit(np.log10(r_vals[3:500]), np.log10(p2_som[3:500]), deg=1)
         # print('fit is', fit)
 
-        plt.savefig('./p2somplot.pdf')
+        fig.savefig('./p2somplot.pdf')
 
 
-    rho_r_som_interp = i1d(r_vals, p2_som, fill_value=0)
+    # p2_som = p2_som_analytic(r_vals)
+    rho_r_som_interp = i1d(r_vals, p2_som, fill_value='extrapolate', kind='slinear', bounds_error=False)
 
-    theta_vals = np.logspace(-3, 2, num=lim)
+    theta_vals = np.logspace(-3, 2, num=lim // 2)
 
     print('computing Jsom')
     def J_somm(theta):
-        f = lambda r: 1 / np.sqrt(1-(theta/(r + 1e-40))**2) * (32*np.pi**2) * rho_r_som_interp(r + 1e-40)
-        return integrate.quad(f, theta, 100, limit=lim, points=r_vals)[0]
+        f = lambda r: (1-(theta/r)**2)**-0.5 * (32*np.pi**2) * rho_r_som_interp(r) if theta/r > 0.2 else (1 + 0.5 *  (theta/r)**2) * (32*np.pi**2) * rho_r_som_interp(r)
+        # return integrate.quad(f, theta, np.inf, limit=lim)[0]
+        return integrate.quad(f, theta, theta_vals[-1], limit=lim, points=r_vals)[0]
 
+    ###
+    J_som = [J_somm(theta) for theta in theta_vals[:-1].astype(np.longdouble)]
+    print(np.sum(np.isnan(J_som)), 'nans in Jsom')
+
+
+    np.save('J_som_vals.npy', J_som) # save
+    np.save('theta_vals.npy', theta_vals[:-1])
     #####
-    #J_som = [J_somm(theta) for theta in theta_vals[:-1]]
-    #print(np.sum(np.isnan(J_som)), 'nans in Jsom')
-
-
-    #np.save('J_som_vals.npy', J_som) # save
-    #np.save('theta_vals.npy', theta_vals[:-1])
-    ######
     theta_vals = np.load('theta_vals.npy')
     J_som = np.load('J_som_vals.npy') # save
 
@@ -300,18 +327,25 @@ for fil in rho_dict.keys():
             hsomn = infile['hsom']
             radius = infile['radius']
 
-        fig, ax = plt.subplots()
+        fig, (ax, ax2) = plt.subplots(nrows=2, sharex=True)
         ax.plot(theta_vals, J_som, label='new code')
         ax.plot(radius, hsomn, label='old cod')
 
-        ax.plot(theta_vals, 10**-2.45*1.18*theta_vals**-1.54*32*np.pi**2, label='mathematica', ls='--')
+        jsom_analytic = 3 * np.pi / 16 * 1.18 * theta_vals**-1.5
+        ax.plot(theta_vals, jsom_analytic, label='mathematica', ls='--')
         ax.set_xscale('log')
         ax.set_yscale('log')
         ax.set_xlabel('theta')
         ax.set_ylabel('J som')
         ax.set_xlim(left=1e-3, right=1)
-        ax.set_ylim(bottom=1)
+        ax.set_ylim(bottom=10, top=1e6)
         ax.legend() 
+
+        # ax2.plot(theta_vals, (J_som - jsom_analytic) / jsom_analytic)
+        ax2.plot(theta_vals, 1 / J_som * jsom_analytic)
+        ax2.set_xlabel('theta')
+        ax2.set_ylabel('percent residual')
+        ax2.set_ylim(bottom=-.1, top=5)
         fig.savefig('./jsom.pdf')
 
     # print(J_som)
@@ -326,4 +360,4 @@ for fil in rho_dict.keys():
     # print('angular spread', equation_10_som)  #eq 10 match the paper 0.27
     os.chdir('..')
 
-sys.stdout = orig_stdout
+    sys.stdout = orig_stdout
