@@ -1,0 +1,18 @@
+
+
+ einasto0-20 
+
+computing phi vals
+computing dm phase space distribution
+304 nans in fvals
+computed f vals
+changing variables
+nonzero frv 866107
+computing p2som
+[1.98166576e+08 1.95287805e+08 1.92446477e+08 ... 0.00000000e+00
+ 0.00000000e+00 0.00000000e+00]
+0 nan vals in p2som
+computing Jsom
+0 nans in Jsom
+total j factor 4.133608142239717
+angular spread 0.06577161941362687

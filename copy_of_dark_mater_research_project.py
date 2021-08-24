@@ -85,10 +85,10 @@ for fil in rho_dict.keys():
 
     print('computing phi vals')
 
-    #####3
-    phi_vals = np.array([phi_x(rr) for rr in r_vals]) 
-    np.save('./phivals.npy', phi_vals)
-    ####
+    ######3
+    #phi_vals = np.array([phi_x(rr) for rr in r_vals]) 
+    #np.save('./phivals.npy', phi_vals)
+    #####
 
     phi_vals = np.load('./phivals.npy')
 
@@ -134,7 +134,7 @@ for fil in rho_dict.keys():
         return 3 / (16 * np.sqrt(2) * np.pi) * E **((gamma - 6) / (2 * (2 - gamma)))
 
     def f(E):
-        return integrate.quad(lambda x: 1 / (np.sqrt(8) * np.pi**2) * sec_derv_func(x) / np.sqrt(x - E), E, 1, points=phi_vals, limit=lim+1)[0]
+        return integrate.quad(lambda x: 1 / (np.sqrt(8) * np.pi**2) * sec_derv_func(x) / np.sqrt(x * 1.000000001 - E), E, 1, points=phi_vals, limit=lim+1)[0]
 
     ####
     fval = [f(Eval) for Eval in phi_vals] # print(fval[:10])
@@ -243,6 +243,7 @@ for fil in rho_dict.keys():
     fvals = fvals[5:-5]
     phi_vals = phi_vals[5:-5]
     r_vals = r_vals[5:-5]
+
     #####
     frv = np.zeros((len(r_vals), len(vvals)))
     finterp = i1d(phi_vals, fvals, fill_value='extrapolate', bounds_error=False)
