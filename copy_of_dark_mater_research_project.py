@@ -29,10 +29,10 @@ def moore(r):
     return (r**1.4 * (1 + r)**1.4)**-1
 
 rho_dict = {
-        # 'nfw0-6': lambda r: nfw_gamma(r, 0.6),
-        # 'nfw0-7': lambda r: nfw_gamma(r, 0.7),
-        # 'nfw0-8': lambda r: nfw_gamma(r, 0.8),
-        # 'nfw0-9': lambda r: nfw_gamma(r, 0.9),
+        'nfw0-6': lambda r: nfw_gamma(r, 0.6),
+        'nfw0-7': lambda r: nfw_gamma(r, 0.7),
+        'nfw0-8': lambda r: nfw_gamma(r, 0.8),
+        'nfw0-9': lambda r: nfw_gamma(r, 0.9),
         'nfw1-0': lambda r: nfw_gamma(r, 1.0),
         'nfw1-1': lambda r: nfw_gamma(r, 1.1),
         'nfw1-2': lambda r: nfw_gamma(r, 1.2),
@@ -48,8 +48,7 @@ rho_dict = {
         'moore': lambda r: moore(r),
 }
 
-gamma = 0.9
-
+gamma = 0.5
 
 for fil in rho_dict.keys():
     gamma += 0.1
@@ -59,7 +58,7 @@ for fil in rho_dict.keys():
         pass
     os.chdir(fil)
     f = open('output.txt', 'w')
-    # sys.stdout = f
+    sys.stdout = f
 
     print('\n\n', fil, '\n')
     # Setting a range of what our r̃ values will be
@@ -86,10 +85,10 @@ for fil in rho_dict.keys():
 
     print('computing phi vals')
 
-    ######3
-    #phi_vals = np.array([phi_x(rr) for rr in r_vals]) 
-    #np.save('./phivals.npy', phi_vals)
-    #####
+    #####3
+    phi_vals = np.array([phi_x(rr) for rr in r_vals]) 
+    np.save('./phivals.npy', phi_vals)
+    ####
 
     phi_vals = np.load('./phivals.npy')
 
@@ -137,13 +136,13 @@ for fil in rho_dict.keys():
     def f(E):
         return integrate.quad(lambda x: 1 / (np.sqrt(8) * np.pi**2) * sec_derv_func(x) / np.sqrt(x - E), E, 1, points=phi_vals, limit=lim+1)[0]
 
-    #####
-    #fval = [f(Eval) for Eval in phi_vals] # print(fval[:10])
-    #print(np.sum(np.isnan(fval)), 'nans in fvals')
-    #fvals = np.nan_to_num(fval)
+    ####
+    fval = [f(Eval) for Eval in phi_vals] # print(fval[:10])
+    print(np.sum(np.isnan(fval)), 'nans in fvals')
+    fvals = np.nan_to_num(fval)
 
-    #np.save('./fvals.npy', fvals)
-    #####
+    np.save('./fvals.npy', fvals)
+    ####
 
     fvals = np.load('./fvals.npy')
 
@@ -244,27 +243,27 @@ for fil in rho_dict.keys():
     fvals = fvals[5:-5]
     phi_vals = phi_vals[5:-5]
     r_vals = r_vals[5:-5]
-    ######
-    #frv = np.zeros((len(r_vals), len(vvals)))
-    #finterp = i1d(phi_vals, fvals, fill_value='extrapolate', bounds_error=False)
-    ## i is the row index (r values)
-    #for i in range(len(r_vals)):
-    #    # j is the column index (v values)
-    #    for j in range(len(vvals)):
-    #        E = vvals[j]**2 / 2 + phi_vals[i]
-    #        if E < 1:
-    #            frv[i, j] = finterp(E)
-
-    #print('nonzero frv', np.sum(frv.flatten() != 0))
-
-    #f = i2d(r_vals, vvals, frv.T)
-    #print('computing p2som')
-
-    #integrand = frv[:, :, np.newaxis] * frv[:, np.newaxis, :] * vvals[np.newaxis, :, np.newaxis]**2 * vvals[np.newaxis, np.newaxis, :] * np.tri(len(vvals)).T[np.newaxis, :, :]
-    #p2_som = integrate.simps(integrate.simps(integrand, vvals, axis=2), vvals, axis=1)
-    #print(p2_som)
-    #np.save('p2_sommerfeld.npy', p2_som) # save
     #####
+    frv = np.zeros((len(r_vals), len(vvals)))
+    finterp = i1d(phi_vals, fvals, fill_value='extrapolate', bounds_error=False)
+    # i is the row index (r values)
+    for i in range(len(r_vals)):
+        # j is the column index (v values)
+        for j in range(len(vvals)):
+            E = vvals[j]**2 / 2 + phi_vals[i]
+            if E < 1:
+                frv[i, j] = finterp(E)
+
+    print('nonzero frv', np.sum(frv.flatten() != 0))
+
+    f = i2d(r_vals, vvals, frv.T)
+    print('computing p2som')
+
+    integrand = frv[:, :, np.newaxis] * frv[:, np.newaxis, :] * vvals[np.newaxis, :, np.newaxis]**2 * vvals[np.newaxis, np.newaxis, :] * np.tri(len(vvals)).T[np.newaxis, :, :]
+    p2_som = integrate.simps(integrate.simps(integrand, vvals, axis=2), vvals, axis=1)
+    print(p2_som)
+    np.save('p2_sommerfeld.npy', p2_som) # save
+    ####
 
     p2_som = np.load('p2_sommerfeld.npy') # save
     p2_som[p2_som < 1e-6] = 0
