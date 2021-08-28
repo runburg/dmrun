@@ -1,0 +1,18 @@
+
+
+ nfw1-25 
+
+computing phi vals
+computing dm phase space distribution
+163 nans in fvals
+computed f vals
+changing variables
+nonzero frv 1016406
+computing p2som
+[3.10579867e+14 2.95960560e+14 2.82046789e+14 ... 0.00000000e+00
+ 0.00000000e+00 0.00000000e+00]
+0 nan vals in p2som
+computing Jsom
+0 nans in Jsom
+total j factor 2.5403466243325212
+angular spread 0.1193345771168877

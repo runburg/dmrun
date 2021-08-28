@@ -29,26 +29,27 @@ def moore(r):
     return (r**1.4 * (1 + r)**1.4)**-1
 
 rho_dict = {
-        'nfw0-6': lambda r: nfw_gamma(r, 0.6),
-        'nfw0-7': lambda r: nfw_gamma(r, 0.7),
-        'nfw0-8': lambda r: nfw_gamma(r, 0.8),
-        'nfw0-9': lambda r: nfw_gamma(r, 0.9),
-        'nfw1-0': lambda r: nfw_gamma(r, 1.0),
-        'nfw1-1': lambda r: nfw_gamma(r, 1.1),
-        'nfw1-2': lambda r: nfw_gamma(r, 1.2),
-        'nfw1-3': lambda r: nfw_gamma(r, 1.3),
-        'nfw1-4': lambda r: nfw_gamma(r, 1.4),
-        'nfw1-27': lambda r: nfw_gamma(r, 1.27),
-        'einasto0-13': lambda r: einasto(r, 0.13),
-        'einasto0-16': lambda r: einasto(r, 0.16),
-        'einasto0-17': lambda r: einasto(r, 0.17),
-        'einasto0-20': lambda r: einasto(r, 0.20),
-        'einasto0-24': lambda r: einasto(r, 0.24),
-        'burkert': lambda r: burkert(r),
-        'moore': lambda r: moore(r),
+        # 'nfw0-6': lambda r: nfw_gamma(r, 0.6),
+        # 'nfw0-7': lambda r: nfw_gamma(r, 0.7),
+        # 'nfw0-8': lambda r: nfw_gamma(r, 0.8),
+        # 'nfw0-9': lambda r: nfw_gamma(r, 0.9),
+        # 'nfw1-0': lambda r: nfw_gamma(r, 1.0),
+        # 'nfw1-1': lambda r: nfw_gamma(r, 1.1),
+        # 'nfw1-2': lambda r: nfw_gamma(r, 1.2),
+        # 'nfw1-3': lambda r: nfw_gamma(r, 1.3),
+        # 'nfw1-4': lambda r: nfw_gamma(r, 1.4),
+        # 'nfw1-27': lambda r: nfw_gamma(r, 1.27),
+        'nfw1-25': lambda r: nfw_gamma(r, 1.25),
+        # 'einasto0-13': lambda r: einasto(r, 0.13),
+        # 'einasto0-16': lambda r: einasto(r, 0.16),
+        # 'einasto0-17': lambda r: einasto(r, 0.17),
+        # 'einasto0-20': lambda r: einasto(r, 0.20),
+        # 'einasto0-24': lambda r: einasto(r, 0.24),
+        # 'burkert': lambda r: burkert(r),
+        # 'moore': lambda r: moore(r),
 }
 
-gamma = 0.5
+gamma = 1.15
 
 for fil in rho_dict.keys():
     gamma += 0.1
@@ -125,7 +126,7 @@ for fil in rho_dict.keys():
     sec_derv = np.gradient(first_derv, phi_vals)
 
     # making the second derivative a function
-    sec_derv_func = i1d(phi_vals, sec_derv, fill_value='extrapolate', bounds_error=False)
+    sec_derv_func = i1d(phi_vals[5:-5], sec_derv[5:-5], fill_value='extrapolate', bounds_error=False)
 
     print('computing dm phase space distribution')
     # plot with new phi values
@@ -134,7 +135,7 @@ for fil in rho_dict.keys():
         return 3 / (16 * np.sqrt(2) * np.pi) * E **((gamma - 6) / (2 * (2 - gamma)))
 
     def f(E):
-        return integrate.quad(lambda x: 1 / (np.sqrt(8) * np.pi**2) * sec_derv_func(x) / np.sqrt(x * 1.000000001 - E), E, 1, points=phi_vals, limit=lim+1)[0]
+        return integrate.quad(lambda x: 1 / (np.sqrt(8) * np.pi**2) * sec_derv_func(x) / np.sqrt(x * 1.00000000001 - E), E, 1, points=phi_vals, limit=lim+1)[0]
 
     ####
     fval = [f(Eval) for Eval in phi_vals] # print(fval[:10])
