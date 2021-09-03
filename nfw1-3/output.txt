@@ -8,6 +8,5 @@ computed f vals
 changing variables
 0 nan vals in p2som
 computing Jsom
-0 nans in Jsom
 total j factor 3.3602654004485335
 angular spread 0.09905435908305865

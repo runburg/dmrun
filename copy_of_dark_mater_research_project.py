@@ -9,8 +9,8 @@ from scipy.interpolate import interp1d as i1d
 from scipy.interpolate import interp2d as i2d
 from scipy import integrate
 
-from wolframclient.evaluation import WolframLanguageSession
-from wolframclient.language import wl, wlexpr
+# from wolframclient.evaluation import WolframLanguageSession
+# from wolframclient.language import wl, wlexpr
 # session = WolframLanguageSession()
 
 orig_stdout = sys.stdout
@@ -54,22 +54,22 @@ def moore(r):
 # }
 
 rho_dict = {
-        'nfw0-6': ['nfw', 0.6, lambda r: nfw_gamma(r, 0.6), 0.0177549, 0.352125, 1.69103],
-        'nfw0-7': ['nfw', 0.7, lambda r: nfw_gamma(r, 0.7), 0.0217055, 0.418731, 1.51880],
-        'nfw0-8': ['nfw', 0.8, lambda r: nfw_gamma(r, 0.8), 0.0265685, 0.480743, 1.38725],
-        'nfw0-9': ['nfw', 0.9, lambda r: nfw_gamma(r, 0.9), 0.0329904, 0.537610, 1.28305],
-        'nfw1-0': ['nfw', 1.0, lambda r: nfw_gamma(r, 1.0), 3 / (16 * np.sqrt(2) * np.pi), 3 * np.pi / 16, 1.19814],
-        'nfw1-1': ['nfw', 1.1, lambda r: nfw_gamma(r, 1.1), 0.0567894, 0.634935, 1.12740],
-        'nfw1-2': ['nfw', 1.2, lambda r: nfw_gamma(r, 1.2), 0.0829223, 0.675237, 1.06738],
-        'nfw1-3': ['nfw', 1.3, lambda r: nfw_gamma(r, 1.3), 0.1381440, 0.675237, 1.01569],
-        'nfw1-4': ['nfw', 1.4, lambda r: nfw_gamma(r, 1.4), 0.2866070, 0.739172, 0.97061],
-        # 'nfw1-27': ['nfw', 1.27, lambda r: nfw_gamma(r, 1.27), 0.455443**-4 * (-0.1292)**2, 1.03044],
-        'nfw1-25': ['nfw', 1.25, lambda r: nfw_gamma(r, 1.25), 0.104831, 0.693298, 1.04061],
-        'einasto0-13': ['einasto', 0.13, lambda r: einasto(r, 0.13), 0, 0, 0],
-        'einasto0-16': ['einasto', 0.16, lambda r: einasto(r, 0.16), 0, 0, 0],
-        'einasto0-17': ['einasto', 0.17, lambda r: einasto(r, 0.17), 0, 0, 0],
-        'einasto0-20': ['einasto', 0.20, lambda r: einasto(r, 0.20), 0, 0, 0],
-        'einasto0-24': ['einasto', 0.24, lambda r: einasto(r, 0.24), 0, 0, 0],
+        # 'nfw0-6': ['nfw', 0.6, lambda r: nfw_gamma(r, 0.6), 0.0177549, 0.352125, 1.69103],
+        # 'nfw0-7': ['nfw', 0.7, lambda r: nfw_gamma(r, 0.7), 0.0217055, 0.418731, 1.51880],
+        # 'nfw0-8': ['nfw', 0.8, lambda r: nfw_gamma(r, 0.8), 0.0265685, 0.480743, 1.38725],
+        # 'nfw0-9': ['nfw', 0.9, lambda r: nfw_gamma(r, 0.9), 0.0329904, 0.537610, 1.28305],
+        # 'nfw1-0': ['nfw', 1.0, lambda r: nfw_gamma(r, 1.0), 3 / (16 * np.sqrt(2) * np.pi), 3 * np.pi / 16, 1.19814],
+        # 'nfw1-1': ['nfw', 1.1, lambda r: nfw_gamma(r, 1.1), 0.0567894, 0.634935, 1.12740],
+        # 'nfw1-2': ['nfw', 1.2, lambda r: nfw_gamma(r, 1.2), 0.0829223, 0.675237, 1.06738],
+        # 'nfw1-3': ['nfw', 1.3, lambda r: nfw_gamma(r, 1.3), 0.1381440, 0.675237, 1.01569],
+        # 'nfw1-4': ['nfw', 1.4, lambda r: nfw_gamma(r, 1.4), 0.2866070, 0.739172, 0.97061],
+        # # 'nfw1-27': ['nfw', 1.27, lambda r: nfw_gamma(r, 1.27), 0.455443**-4 * (-0.1292)**2, 1.03044],
+        # 'nfw1-25': ['nfw', 1.25, lambda r: nfw_gamma(r, 1.25), 0.104831, 0.693298, 1.04061],
+        # 'einasto0-13': ['einasto', 0.13, lambda r: einasto(r, 0.13), 0, 0, 0],
+        # 'einasto0-16': ['einasto', 0.16, lambda r: einasto(r, 0.16), 0, 0, 0],
+        # 'einasto0-17': ['einasto', 0.17, lambda r: einasto(r, 0.17), 0, 0, 0],
+        # 'einasto0-20': ['einasto', 0.20, lambda r: einasto(r, 0.20), 0, 0, 0],
+        # 'einasto0-24': ['einasto', 0.24, lambda r: einasto(r, 0.24), 0, 0, 0],
         'burkert': ['burkert', 0, lambda r: burkert(r), 0, 0, 0],
         'moore': ['moore', 0, lambda r: moore(r), 0, 0, 0],
 }
@@ -258,15 +258,16 @@ for fil in rho_dict.keys():
         # ax.plot(oldes, oldfs, label='kims fe')
         ax.plot(phi_vals, fvals, label='new fe')
         ax.plot(phi_vals, f_analytic(phi_vals), label='analytic', ls='--')
-        ax.set_xscale('log')
-        ax.set_yscale('log')
+        # ax.set_xscale('linear')
+        if label != 'burkert':
+            ax.set_yscale('log')
         ax.set_xlabel('E')
         ax.set_ylabel('f(E)')
         ax.legend()
 
         ax2.plot(phi_vals, np.abs(np.gradient(fvals, phi_vals)), label='f(E) slope')
         # ax2.plot(phi_vals, np.abs(-5/2 * 3/16/np.sqrt(2) / np.pi * phi_vals**(-7/2)), label='Analytic solution')
-        ax2.set_xscale('log')
+        # ax2.set_xscale('log')
         ax2.set_xlabel('E')
         ax2.set_ylabel('df/dE')
         ax2.set_yscale('log')
@@ -362,14 +363,14 @@ for fil in rho_dict.keys():
         # return integrate.quad(f, theta, np.inf, limit=lim)[0]
         return integrate.quad(f, theta, theta_vals[-1], limit=lim, points=r_vals)[0]
 
-    ###
-    J_som = [J_somm(theta) for theta in theta_vals[:-1].astype(np.longdouble)]
-    print(np.sum(np.isnan(J_som)), 'nans in Jsom')
+    ####
+    #J_som = [J_somm(theta) for theta in theta_vals[:-1].astype(np.longdouble)]
+    #print(np.sum(np.isnan(J_som)), 'nans in Jsom')
 
 
-    np.save('J_som_vals.npy', J_som) # save
-    np.save('theta_vals.npy', theta_vals[:-1])
-    #####
+    #np.save('J_som_vals.npy', J_som) # save
+    #np.save('theta_vals.npy', theta_vals[:-1])
+    ######
     theta_vals = np.load('theta_vals.npy')
     J_som = np.load('J_som_vals.npy') # save
 
@@ -396,7 +397,9 @@ for fil in rho_dict.keys():
         ax.set_xlabel('theta')
         ax.set_ylabel('J som')
         ax.set_xlim(left=1e-3, right=1)
-        ax.set_ylim(bottom=10, top=1e6)
+        if label != 'burkert':
+            ax.set_ylim(bottom=10, top=1e6)
+
         ax.legend() 
 
         if label == 'nfw':
