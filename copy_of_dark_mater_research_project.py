@@ -82,8 +82,8 @@ for fil in rho_dict.keys():
     except FileExistsError:
         pass
     os.chdir(fil)
-    # f = open('output.txt', 'w')
-    # sys.stdout = f
+    f = open('output.txt', 'w')
+    sys.stdout = f
 
     print('\n\n', fil, '\n')
     # Setting a range of what our r̃ values will be
@@ -313,38 +313,38 @@ for fil in rho_dict.keys():
     print('changing variables')
 
     # vvals = np.linspace(0, np.sqrt(-2*phi_vals[0]), num=lim)
-    vvals = np.logspace(-8, np.log10(np.sqrt(2)), num=lim+1)
+    vvals = np.logspace(-8, np.log10(np.sqrt(2 * phi_vals.max())), num=lim+1)
 
     fvals = fvals[5:-5]
     phi_vals = phi_vals[5:-5]
     r_vals = r_vals[5:-5]
 
-    ######
-    #frv = np.zeros((len(r_vals), len(vvals)))
-    #finterp = i1d(phi_vals, fvals, fill_value='extrapolate', bounds_error=False)
-    ## i is the row index (r values)
-    #for i in range(len(r_vals)):
-    #    # j is the column index (v values)
-    #    for j in range(len(vvals)):
-    #        E = vvals[j]**2 / 2 + phi_vals[i]
-    #        if E < 1:
-    #            frv[i, j] = finterp(E)
-
-    #print('nonzero frv', np.sum(frv.flatten() != 0))
-
-    #f = i2d(r_vals, vvals, frv.T)
-    #print('computing p2som')
-
-    #integrand = frv[:, :, np.newaxis] * frv[:, np.newaxis, :] * vvals[np.newaxis, :, np.newaxis]**2 * vvals[np.newaxis, np.newaxis, :] * np.tri(len(vvals)).T[np.newaxis, :, :]
-    #p2_som = integrate.simps(integrate.simps(integrand, vvals, axis=2), vvals, axis=1)
-
-    ## print(p2_som)
-
-    #np.save('p2_sommerfeld.npy', p2_som) # save
     #####
+    frv = np.zeros((len(r_vals), len(vvals)))
+    finterp = i1d(phi_vals, fvals, fill_value=0, bounds_error=False)
+    # i is the row index (r values)
+    for i in range(len(r_vals)):
+        # j is the column index (v values)
+        for j in range(len(vvals)):
+            E = vvals[j]**2 / 2 + phi_vals[i]
+            if E < 1:
+                frv[i, j] = finterp(E)
+
+    print('nonzero frv', np.sum(frv.flatten() != 0))
+
+    f = i2d(r_vals, vvals, frv.T)
+    print('computing p2som')
+
+    integrand = frv[:, :, np.newaxis] * frv[:, np.newaxis, :] * vvals[np.newaxis, :, np.newaxis]**2 * vvals[np.newaxis, np.newaxis, :] * np.tri(len(vvals)).T[np.newaxis, :, :]
+    p2_som = integrate.simps(integrate.simps(integrand, vvals, axis=2), vvals, axis=1)
+
+    # print(p2_som)
+
+    np.save('p2_sommerfeld.npy', p2_som) # save
+    ####
 
     p2_som = np.load('p2_sommerfeld.npy') # save
-    p2_som[p2_som < 1e-6] = 0
+    # p2_som[p2_som < 1e-6] = 0
     print(np.sum(np.isnan(p2_som)), 'nan vals in p2som')
 
 
@@ -392,14 +392,14 @@ for fil in rho_dict.keys():
         # return integrate.quad(f, theta, np.inf, limit=lim)[0]
         return integrate.quad(f, theta, theta_vals[-1], limit=lim, points=r_vals)[0]
 
-    ####
-    #J_som = [J_somm(theta) for theta in theta_vals[:-1].astype(np.longdouble)]
-    #print(np.sum(np.isnan(J_som)), 'nans in Jsom')
+    ###
+    J_som = [J_somm(theta) for theta in theta_vals[:-1].astype(np.longdouble)]
+    print(np.sum(np.isnan(J_som)), 'nans in Jsom')
 
 
-    #np.save('J_som_vals.npy', J_som) # save
-    #np.save('theta_vals.npy', theta_vals[:-1])
-    ######
+    np.save('J_som_vals.npy', J_som) # save
+    np.save('theta_vals.npy', theta_vals[:-1])
+    #####
     theta_vals = np.load('theta_vals.npy')
     J_som = np.load('J_som_vals.npy') # save
 
@@ -448,7 +448,7 @@ for fil in rho_dict.keys():
         if label == 'nfw':
             ax2.plot(theta_vals, (J_som - jsom_analytic(theta_vals)) / jsom_analytic(theta_vals), label='analytic')
             # ax2.plot(theta_vals, 1 / J_som * jsom_analytic)
-            ax2.set_xlabel('theta')
+            ax2.set_xlabel(r'$\theta$')
             ax2.set_ylabel('percent residual')
             ax2.set_ylim(bottom=-.1, top=.2)
         fig.savefig('./jsom.pdf')
