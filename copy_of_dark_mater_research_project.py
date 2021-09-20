@@ -55,17 +55,17 @@ def moore(r):
 # }
 
 rho_dict = {
-        'nfw0-6': ['nfw', 0.6, lambda r: nfw_gamma(r, 0.6), 0.0177549, 0.352125, 1.69103],
-        'nfw0-7': ['nfw', 0.7, lambda r: nfw_gamma(r, 0.7), 0.0217055, 0.418731, 1.51880],
-        'nfw0-8': ['nfw', 0.8, lambda r: nfw_gamma(r, 0.8), 0.0265685, 0.480743, 1.38725],
-        'nfw0-9': ['nfw', 0.9, lambda r: nfw_gamma(r, 0.9), 0.0329904, 0.537610, 1.28305],
-        'nfw1-0': ['nfw', 1.0, lambda r: nfw_gamma(r, 1.0), 3 / (16 * np.sqrt(2) * np.pi), 3 * np.pi / 16, 1.19814],
-        'nfw1-1': ['nfw', 1.1, lambda r: nfw_gamma(r, 1.1), 0.0567894, 0.634935, 1.12740],
-        'nfw1-2': ['nfw', 1.2, lambda r: nfw_gamma(r, 1.2), 0.0829223, 0.675237, 1.06738],
-        'nfw1-3': ['nfw', 1.3, lambda r: nfw_gamma(r, 1.3), 0.1381440, 0.675237, 1.01569],
-        'nfw1-4': ['nfw', 1.4, lambda r: nfw_gamma(r, 1.4), 0.2866070, 0.739172, 0.97061],
-        # 'nfw1-27': ['nfw', 1.27, lambda r: nfw_gamma(r, 1.27), 0.455443**-4 * (-0.1292)**2, 1.03044],
-        'nfw1-25': ['nfw', 1.25, lambda r: nfw_gamma(r, 1.25), 0.104831, 0.693298, 1.04061],
+        # 'nfw0-6': ['nfw', 0.6, lambda r: nfw_gamma(r, 0.6), 0.0177549, 0.352125, 1.69103],
+        # 'nfw0-7': ['nfw', 0.7, lambda r: nfw_gamma(r, 0.7), 0.0217055, 0.418731, 1.51880],
+        # 'nfw0-8': ['nfw', 0.8, lambda r: nfw_gamma(r, 0.8), 0.0265685, 0.480743, 1.38725],
+        # 'nfw0-9': ['nfw', 0.9, lambda r: nfw_gamma(r, 0.9), 0.0329904, 0.537610, 1.28305],
+        # 'nfw1-0': ['nfw', 1.0, lambda r: nfw_gamma(r, 1.0), 3 / (16 * np.sqrt(2) * np.pi), 3 * np.pi / 16, 1.19814],
+        # 'nfw1-1': ['nfw', 1.1, lambda r: nfw_gamma(r, 1.1), 0.0567894, 0.634935, 1.12740],
+        # 'nfw1-2': ['nfw', 1.2, lambda r: nfw_gamma(r, 1.2), 0.0829223, 0.675237, 1.06738],
+        # 'nfw1-3': ['nfw', 1.3, lambda r: nfw_gamma(r, 1.3), 0.1381440, 0.675237, 1.01569],
+        # 'nfw1-4': ['nfw', 1.4, lambda r: nfw_gamma(r, 1.4), 0.2866070, 0.739172, 0.97061],
+        # # 'nfw1-27': ['nfw', 1.27, lambda r: nfw_gamma(r, 1.27), 0.455443**-4 * (-0.1292)**2, 1.03044],
+        # 'nfw1-25': ['nfw', 1.25, lambda r: nfw_gamma(r, 1.25), 0.104831, 0.693298, 1.04061],
         'einasto0-13': ['einasto', 0.13, lambda r: einasto(r, 0.13), 0, 0, 0],
         'einasto0-16': ['einasto', 0.16, lambda r: einasto(r, 0.16), 0, 0, 0],
         'einasto0-17': ['einasto', 0.17, lambda r: einasto(r, 0.17), 0, 0, 0],
@@ -87,7 +87,7 @@ for fil in rho_dict.keys():
 
     print('\n\n', fil, '\n')
     # Setting a range of what our r̃ values will be
-    r_vals = np.logspace(-5, 2, num=lim)
+    r_vals = np.logspace(-5, 3, num=lim)
 
     np.save('./rvals.npy', r_vals)
 
@@ -115,7 +115,6 @@ for fil in rho_dict.keys():
     #     cn = 0
 
     rho_vals = rho(r_vals)
-
 
     def phi_y(x):
         f = lambda y: y**2 * rho(y)
@@ -157,15 +156,19 @@ for fil in rho_dict.keys():
 
         if label == 'nfw':
             phis = np.load(f'../1000 pts/NFW/{gamma}/phi_vals_{gamma}.npy')
+            fs = np.load(f'../1000 pts/NFW/{gamma}/fvals_{gamma}.npy')
             rs = np.load('../1000 pts/NFW/1.0/r_vals.npy')
         elif label == 'burkert':
             phis = np.load('../1000 pts/Burkert/phi_vals_burkert.npy')
+            fs = np.load('../1000 pts/Burkert/fvals_burkert.npy')
             rs = np.load('../1000 pts/NFW/1.0/r_vals.npy')
         elif label == 'moore':
             phis = np.load('../1000 pts/Moore/phi_vals_moore.npy')
+            fs = np.load('../1000 pts/Moore/fvals_moore.npy')
             rs = np.load('../1000 pts/NFW/1.0/r_vals.npy')
         elif label == 'einasto':
             phis = np.load(f'../1000 pts/Einasto/{gamma:.2f}/phi_vals_alpha_{gamma}.npy')
+            fs = np.load(f'../1000 pts/Einasto/{gamma:.2f}/fvals_alpha_{gamma}.npy')
             rs = np.load('../1000 pts/NFW/1.0/r_vals.npy')
 
         phis -= phis.min()
@@ -175,10 +178,10 @@ for fil in rho_dict.keys():
         if label == 'nfw':
             ax2.plot(r_vals, (phi_vals - analytic_phi(r_vals))/analytic_phi(r_vals), label="jack's")
             ax2.plot(rs, (phis - analytic_phi(rs)) / analytic_phi(rs), label="van's")
+            ax2.legend()
         ax2.set_ylabel('percent residual compared to analytic')
         ax2.set_xlabel('r')
         ax2.set_ylim(bottom=-.1, top=.1)
-        ax2.legend()
         fig.savefig('./phi_comparison.pdf')
 
     # first derivative of rho(r)
@@ -239,7 +242,8 @@ for fil in rho_dict.keys():
     if PLOT is True:
         fig, (ax, ax1) = plt.subplots(nrows=2)
         ax.plot(r_vals, rho_vals, label='rho')
-        ax.plot(oldrs, recovered_rho_old, label='rho from kim fe')
+        if label == 'nfw':
+            ax.plot(oldrs, recovered_rho_old, label='rho from kim fe')
         # ax.plot(r_vals, recovered_rho_analytic, label='rho analytic', ls='-.')
         ax.plot(r_vals, recovered_rho_new, label='rho from our fe', ls='--')
         ax.set_xscale('log')
@@ -249,7 +253,7 @@ for fil in rho_dict.keys():
         ax.set_ylabel('rho')
         ax.legend()
 
-        ax1.plot(oldrs, recovered_rho_old/rho(oldrs) - 1)
+        ax1.plot(r_vals, recovered_rho_new/rho(r_vals) - 1)
         ax1.set_xscale('log')
         fig.savefig('recovered_rho.pdf')
 
@@ -275,7 +279,8 @@ for fil in rho_dict.keys():
         # yrescale = 1
         # ax.plot(oldes, oldfs, label='kims fe')
         ax.plot(phi_vals, fvals, label='new fe')
-        ax.plot(phi_vals, f_analytic(phi_vals), label='analytic', ls='--')
+        if label == 'nfw':
+            ax.plot(phi_vals, f_analytic(phi_vals), label='analytic', ls='--')
         # ax.set_xscale('linear')
         if label != 'burkert':
             ax.set_yscale('log')
@@ -284,12 +289,16 @@ for fil in rho_dict.keys():
         
         if label == 'nfw':
             fes = np.load(f'../1000 pts/NFW/{gamma}/fvals_{gamma}.npy')
+            p2soms = np.load(f'../1000 pts/NFW/{gamma}/p2_som_{gamma}.npy')
         elif label == 'einasto':
             fes = np.load(f'../1000 pts/Einasto/{gamma:.2f}/fvals_alpha_{gamma}.npy')
+            p2soms = np.load(f'../1000 pts/Einasto/{gamma:.2f}/p2_som_alpha_{gamma}.npy')
         elif label == 'moore':
             fes = np.load('../1000 pts/Moore/fvals_moore.npy')
+            p2soms = np.load('../1000 pts/Moore/p2_som_moore.npy')
         elif label == 'burkert':
             fes = np.load('../1000 pts/Burkert/fvals_burkert.npy')
+            p2soms = np.load('../1000 pts/Burkert/p2_som_burkert.npy')
 
         ax.plot(phis, fes, label="van's code", ls='-.')
         ax.legend()
@@ -302,7 +311,8 @@ for fil in rho_dict.keys():
         ax2.set_yscale('log')
         ax2.legend()
 
-        ax3.plot(phi_vals, (fvals - f_analytic(phi_vals))/f_analytic(phi_vals), label='analytic')
+        if label == 'nfw':
+            ax3.plot(phi_vals, (fvals - f_analytic(phi_vals))/f_analytic(phi_vals), label='analytic')
         ax3.set_xlabel('E')
         ax3.set_ylim(bottom=-.1, top=.1)
         ax3.set_ylabel('percent residual')
@@ -315,13 +325,13 @@ for fil in rho_dict.keys():
     # vvals = np.linspace(0, np.sqrt(-2*phi_vals[0]), num=lim)
     vvals = np.logspace(-8, np.log10(np.sqrt(2 * phi_vals.max())), num=lim+1)
 
-    fvals = fvals[5:-5]
-    phi_vals = phi_vals[5:-5]
-    r_vals = r_vals[5:-5]
+    # fvals = fvals[5:-5]
+    # phi_vals = phi_vals[5:-5]
+    # r_vals = r_vals[5:-5]
 
     #####
     frv = np.zeros((len(r_vals), len(vvals)))
-    finterp = i1d(phi_vals, fvals, fill_value=0, bounds_error=False)
+    finterp = i1d(phi_vals, fvals, fill_value='nearest', bounds_error=False)
     # i is the row index (r values)
     for i in range(len(r_vals)):
         # j is the column index (v values)
@@ -359,6 +369,7 @@ for fil in rho_dict.keys():
         if label == 'nfw':
             ax.plot(r_vals, p2_som_analytic(r_vals), label='analytic', ls='--')
 
+        ax.plot(rs, p2soms, label="van's", ls='-.')
         ax.set_xscale('log')
         ax.set_yscale('log')
         ax.set_xlabel('r')
@@ -415,7 +426,8 @@ for fil in rho_dict.keys():
 
         fig, (ax, ax2) = plt.subplots(nrows=2, sharex=True)
         ax.plot(theta_vals, J_som, label='new code')
-        ax.plot(radius, hsomn, label='old cod')
+        if label == 'nfw':
+            ax.plot(radius, hsomn, label='old cod')
 
         if label == 'nfw':
             ind = 50
@@ -425,9 +437,9 @@ for fil in rho_dict.keys():
         ax.set_yscale('log')
         ax.set_xlabel('theta')
         ax.set_ylabel('J som')
-        ax.set_xlim(left=1e-3, right=1)
-        if label != 'burkert':
-            ax.set_ylim(bottom=10, top=1e6)
+        ax.set_xlim(left=1e-3, right=10)
+        # if label != 'burkert':
+        #     ax.set_ylim(bottom=10, top=1e6)
 
         if label == 'nfw':
             js = np.load(f'../1000 pts/NFW/{gamma}/J_som_{gamma}.npy')

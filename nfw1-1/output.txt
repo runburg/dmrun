@@ -6,10 +6,7 @@ computing phi vals
 computing dm phase space distribution
 computed f vals
 changing variables
-nonzero frv 1103873
-computing p2som
 0 nan vals in p2som
 computing Jsom
-0 nans in Jsom
 total j factor 1.253127269373672
 angular spread 0.23834189635779113
