@@ -9,8 +9,14 @@ import math
 from scipy.interpolate import interp1d as i1d
 from scipy.interpolate import interp2d as i2d
 from scipy import integrate
+import json
 
 orig_stdout = sys.stdout
+
+rho_dict = {}
+for param_file in sys.argv[1:]:
+    with open(param_file, 'r') as f:
+        rho_dict.update(json.load(f))
 
 lim = 1100
 PLOT = True
@@ -23,9 +29,9 @@ COMPUTE_P = True
 COMPUTE_D = True
 COMPUTE_SOM = True
 COMPARE_TO_VAN = True
+
 def nfw_gamma(r, gamma):
     return r**-gamma * (1 + r)**-(3 - gamma)
-
 
 def einasto(r, alpha):
     return np.exp(-(2 / alpha) * (r**alpha - 1))
@@ -36,46 +42,42 @@ def burkert(r):
 def moore(r):
     return (r**1.4 * (1 + r)**1.4)**-1
 
-rho_dict = {
-        'nfw0-6': ['nfw', 0.6, lambda r: nfw_gamma(r, 0.6), 0.0177549, 0.352125, 1.69103],
-        'nfw0-7': ['nfw', 0.7, lambda r: nfw_gamma(r, 0.7), 0.0217055, 0.418731, 1.51880],
-        'nfw0-8': ['nfw', 0.8, lambda r: nfw_gamma(r, 0.8), 0.0265685, 0.480743, 1.38725],
-        'nfw0-9': ['nfw', 0.9, lambda r: nfw_gamma(r, 0.9), 0.0329904, 0.537610, 1.28305],
-        'nfw1-0': ['nfw', 1.0, lambda r: nfw_gamma(r, 1.0), 3 / (16 * np.sqrt(2) * np.pi), 3 * np.pi / 16, 1.19814],
-        'nfw1-1': ['nfw', 1.1, lambda r: nfw_gamma(r, 1.1), 0.0567894, 0.634935, 1.12740],
-        'nfw1-2': ['nfw', 1.2, lambda r: nfw_gamma(r, 1.2), 0.0829223, 0.675237, 1.06738],
-        'nfw1-3': ['nfw', 1.3, lambda r: nfw_gamma(r, 1.3), 0.1381440, 0.675237, 1.01569],
-        'nfw1-4': ['nfw', 1.4, lambda r: nfw_gamma(r, 1.4), 0.2866070, 0.739172, 0.97061],
-        # 'nfw1-27': ['nfw', 1.27, lambda r: nfw_gamma(r, 1.27), 0.455443**-4 * (-0.1292)**2, 1.03044],
-        'nfw1-25': ['nfw', 1.25, lambda r: nfw_gamma(r, 1.25), 0.104831, 0.693298, 1.04061],
-        'einasto0-13': ['einasto', 0.13, lambda r: einasto(r, 0.13), 0, 0, 0],
-        'einasto0-16': ['einasto', 0.16, lambda r: einasto(r, 0.16), 0, 0, 0],
-        'einasto0-17': ['einasto', 0.17, lambda r: einasto(r, 0.17), 0, 0, 0],
-        'einasto0-20': ['einasto', 0.20, lambda r: einasto(r, 0.20), 0, 0, 0],
-        'einasto0-24': ['einasto', 0.24, lambda r: einasto(r, 0.24), 0, 0, 0],
-        'burkert': ['burkert', 0, lambda r: burkert(r), 0, 0, 0],
-        'moore': ['moore', 0, lambda r: moore(r), 0, 0, 0],
-}
+for key in rho_dict:
+    label = rho_dict[key][0]
+    if label == 'nfw':
+        rho_dict[key].append(lambda r: nfw_gamma(r, rho_dict[key][1]))
+    elif label == 'einasto':
+        rho_dict[key].append(lambda r: einasto(r, rho_dict[key][1]))
+    elif label == 'burkert':
+        rho_dict[key].append(lambda r: burkert(r))
+    elif label == 'moore':
+        rho_dict[key].append(lambda r: moore(r))
+    else:
+        print('BAD INPUT LABEL')
+
+    # rho_dict[key].append(lambda r: rho(r, rho_dict[key][1]))
 
 
-for fil in rho_dict.keys():
+for fol in rho_dict.keys():
     try:
-        os.mkdir(fil)
+        os.mkdir(fol)
     except FileExistsError:
         pass
-    os.chdir(fil)
+    os.chdir(fol)
     f = open('output.txt', 'w')
     sys.stdout = f
 
-    print('\n\n', fil, '\n')
+    print('\n\n', fol, '\n')
 
     # Setting a range of what our r̃ values will be
     r_vals = np.logspace(-5, 3, num=lim)
 
     np.save('./rvals.npy', r_vals)
 
-    label, gamma, rho, f0, cn, Ib = rho_dict[fil]
+    label, gamma, f0, cn, Ib, rho = rho_dict[fol]
+    print(rho_dict[fol])
 
+    print(r_vals.min())
     rho0 = rho(r_vals.min()) * r_vals.min()**gamma
     beta = (gamma - 6) / (2 * (2 - gamma))
     b = -1 - gamma * 3 / 2
