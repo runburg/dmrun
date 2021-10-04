@@ -60,10 +60,10 @@ for key in rho_dict:
 
 for fol in rho_dict.keys():
     try:
-        os.mkdir(fol)
+        os.mkdir('output/'+fol)
     except FileExistsError:
         pass
-    os.chdir(fol)
+    os.chdir('output/'+fol)
     f = open('output.txt', 'w')
     sys.stdout = f
 
@@ -116,21 +116,21 @@ for fol in rho_dict.keys():
         ax.set_ylabel('phi')
 
         if label == 'nfw':
-            phis = np.load(f'../1000 pts/NFW/{gamma}/phi_vals_{gamma}.npy')
-            fs = np.load(f'../1000 pts/NFW/{gamma}/fvals_{gamma}.npy')
-            rs = np.load('../1000 pts/NFW/1.0/r_vals.npy')
+            phis = np.load(f'../../1000 pts/NFW/{gamma}/phi_vals_{gamma}.npy')
+            fs = np.load(f'../../1000 pts/NFW/{gamma}/fvals_{gamma}.npy')
+            rs = np.load('../../1000 pts/NFW/1.0/r_vals.npy')
         elif label == 'burkert':
-            phis = np.load('../1000 pts/Burkert/phi_vals_burkert.npy')
-            fs = np.load('../1000 pts/Burkert/fvals_burkert.npy')
-            rs = np.load('../1000 pts/NFW/1.0/r_vals.npy')
+            phis = np.load('../../1000 pts/Burkert/phi_vals_burkert.npy')
+            fs = np.load('../../1000 pts/Burkert/fvals_burkert.npy')
+            rs = np.load('../../1000 pts/NFW/1.0/r_vals.npy')
         elif label == 'moore':
-            phis = np.load('../1000 pts/Moore/phi_vals_moore.npy')
-            fs = np.load('../1000 pts/Moore/fvals_moore.npy')
-            rs = np.load('../1000 pts/NFW/1.0/r_vals.npy')
+            phis = np.load('../../1000 pts/Moore/phi_vals_moore.npy')
+            fs = np.load('../../1000 pts/Moore/fvals_moore.npy')
+            rs = np.load('../../1000 pts/NFW/1.0/r_vals.npy')
         elif label == 'einasto':
-            phis = np.load(f'../1000 pts/Einasto/{gamma:.2f}/phi_vals_alpha_{gamma}.npy')
-            fs = np.load(f'../1000 pts/Einasto/{gamma:.2f}/fvals_alpha_{gamma}.npy')
-            rs = np.load('../1000 pts/NFW/1.0/r_vals.npy')
+            phis = np.load(f'../../1000 pts/Einasto/{gamma:.2f}/phi_vals_alpha_{gamma}.npy')
+            fs = np.load(f'../../1000 pts/Einasto/{gamma:.2f}/fvals_alpha_{gamma}.npy')
+            rs = np.load('../../1000 pts/NFW/1.0/r_vals.npy')
 
         phis -= phis.min()
         if COMPARE_TO_VAN is True:
@@ -185,7 +185,7 @@ for fol in rho_dict.keys():
     # np.savez('./oldFEs.npz', oldes=oldes, oldf=oldf['fe'][::num])
 
     # of = np.load('./oldFEs.npz', allow_pickle=True)
-    of = np.load('../fe_nounits.npz', allow_pickle=True)
+    of = np.load('../../fe_nounits.npz', allow_pickle=True)
     # oldes = of['oldes']
     oldes = of['energy']
     # oldfs = of['oldf']
@@ -250,17 +250,17 @@ for fol in rho_dict.keys():
         ax.set_ylabel('f(E)')
         
         if label == 'nfw':
-            fes = np.load(f'../1000 pts/NFW/{gamma}/fvals_{gamma}.npy')
-            p2soms = np.load(f'../1000 pts/NFW/{gamma}/p2_som_{gamma}.npy')
+            fes = np.load(f'../../1000 pts/NFW/{gamma}/fvals_{gamma}.npy')
+            p2soms = np.load(f'../../1000 pts/NFW/{gamma}/p2_som_{gamma}.npy')
         elif label == 'einasto':
-            fes = np.load(f'../1000 pts/Einasto/{gamma:.2f}/fvals_alpha_{gamma}.npy')
-            p2soms = np.load(f'../1000 pts/Einasto/{gamma:.2f}/p2_som_alpha_{gamma}.npy')
+            fes = np.load(f'../../1000 pts/Einasto/{gamma:.2f}/fvals_alpha_{gamma}.npy')
+            p2soms = np.load(f'../../1000 pts/Einasto/{gamma:.2f}/p2_som_alpha_{gamma}.npy')
         elif label == 'moore':
-            fes = np.load('../1000 pts/Moore/fvals_moore.npy')
-            p2soms = np.load('../1000 pts/Moore/p2_som_moore.npy')
+            fes = np.load('../../1000 pts/Moore/fvals_moore.npy')
+            p2soms = np.load('../../1000 pts/Moore/p2_som_moore.npy')
         elif label == 'burkert':
-            fes = np.load('../1000 pts/Burkert/fvals_burkert.npy')
-            p2soms = np.load('../1000 pts/Burkert/p2_som_burkert.npy')
+            fes = np.load('../../1000 pts/Burkert/fvals_burkert.npy')
+            p2soms = np.load('../../1000 pts/Burkert/p2_som_burkert.npy')
 
         if COMPARE_TO_VAN is True:
             ax.plot(phis, fes, label="van's code", ls='-.')
@@ -294,7 +294,7 @@ for fol in rho_dict.keys():
 
     if COMPUTE_P2:
         frv = np.zeros((len(r_vals), len(vvals)))
-        finterp = i1d(phi_vals, fvals, fill_value='nearest', bounds_error=False)
+        finterp = i1d(phi_vals, fvals, fill_value='extrapolate', bounds_error=False)
         # i is the row index (r values)
         for i in range(len(r_vals)):
             # j is the column index (v values)
@@ -317,14 +317,15 @@ for fol in rho_dict.keys():
         # pwave
         if COMPUTE_P is True:
             v2 = 4 * np.pi * np.trapz(frv * vvals[np.newaxis, :]**4, vvals, axis=1) / rho(r_vals)
-            p2_p = 2 * ps_2 * v2
+            p2_p = 2 * rho(r_vals)**2 * v2
 
             np.save('p2_p.npy', p2_p)
 
         # dwave
         if COMPUTE_D is True:
+            v2 = 4 * np.pi * np.trapz(frv * vvals[np.newaxis, :]**4, vvals, axis=1) / rho(r_vals)
             v4 = 4 * np.pi * np.trapz(frv * vvals[np.newaxis, :]**6, vvals, axis=1) / rho(r_vals)
-            p2_d = p2_s * (2 * v4 + 10/3 * v2**2)
+            p2_d = rho(r_vals)**2 * (2 * v4 + 10/3 * v2**2)
 
             np.save('p2_d.npy', p2_d)
 
@@ -439,7 +440,7 @@ for fol in rho_dict.keys():
 
 
     if PLOT is True:
-        with np.load("../df_nfw_h_values.txt") as infile:
+        with np.load("../../df_nfw_h_values.txt") as infile:
             hsomn = infile['hsom']
             radius = infile['radius']
 
@@ -465,17 +466,17 @@ for fol in rho_dict.keys():
         #     ax.set_ylim(bottom=10, top=1e6)
 
         if label == 'nfw':
-            js = np.load(f'../1000 pts/NFW/{gamma}/J_som_{gamma}.npy')
-            thetas = np.load(f'../1000 pts/NFW/{gamma}/theta_vals_{gamma}.npy')
+            js = np.load(f'../../1000 pts/NFW/{gamma}/J_som_{gamma}.npy')
+            thetas = np.load(f'../../1000 pts/NFW/{gamma}/theta_vals_{gamma}.npy')
         elif label == 'burkert':
-            js = np.load('../1000 pts/Burkert/J_som_burkert.npy')
-            thetas = np.load('../1000 pts/Burkert/theta_vals_burkert.npy')
+            js = np.load('../../1000 pts/Burkert/J_som_burkert.npy')
+            thetas = np.load('../../1000 pts/Burkert/theta_vals_burkert.npy')
         elif label == 'moore':
-            js = np.load('../1000 pts/Moore/J_som_moore.npy')
-            thetas = np.load('../1000 pts/Moore/theta_vals_moore.npy')
+            js = np.load('../../1000 pts/Moore/J_som_moore.npy')
+            thetas = np.load('../../1000 pts/Moore/theta_vals_moore.npy')
         elif label == 'einasto':
-            js = np.load(f'../1000 pts/Einasto/{gamma:.2f}/J_som_alpha_{gamma}.npy')
-            thetas = np.load('../1000 pts/theta_vals.npy')
+            js = np.load(f'../../1000 pts/Einasto/{gamma:.2f}/J_som_alpha_{gamma}.npy')
+            thetas = np.load('../../1000 pts/theta_vals.npy')
 
         if COMPARE_TO_VAN is True:
             ax.plot(thetas, js, label="van's code", ls='-.')
@@ -512,6 +513,7 @@ for fol in rho_dict.keys():
     # print('total j factor', equation_8_som)   #eq 8 1.02
     # equation_10_som = np.trapz(np.nan_to_num(hsomn) * radius**2, radius) / equation_8_som
     # print('angular spread', equation_10_som)  #eq 10 match the paper 0.27
+    os.chdir('..')
     os.chdir('..')
 
     sys.stdout = orig_stdout

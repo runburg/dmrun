@@ -1,0 +1,33 @@
+
+
+ moore 
+
+['moore', 0, 0, 0, 0, <function <lambda> at 0x2b8d131fa950>]
+1e-05
+computing phi vals
+computing dm phase space distribution
+0 nans in fvals
+computed f vals
+changing variables
+nonzero frv 771352
+computing p2som
+0 nan vals in p2s
+0 nan vals in p2p
+0 nan vals in p2d
+0 nan vals in p2som
+computing Js
+0 nans in Js
+computing Jp
+0 nans in Jp
+computing Jd
+0 nans in Jd
+computing Jsom
+0 nans in Jsom
+total j factor swave	 2.576097390972504
+total j factor pwave	 1.097482288946232
+total j factor dwave	 1.045954438053055
+total j factor som  	 6.07551426487842
+angular spread swave	 0.1490552237482043
+angular spread pwave	 0.12133923859639344
+angular spread dwave	 0.1263224644024248
+angular spread som  	 0.05350431006623932
