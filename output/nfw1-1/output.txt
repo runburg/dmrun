@@ -2,32 +2,21 @@
 
  nfw1-1 
 
-['nfw', 1.1, 0.0567894, 0.634935, 1.1274, <function <lambda> at 0x2b411c048950>]
+['nfw', 1.1, 0.0567894, 0.634935, 1.1274]
 1e-05
 computing phi vals
 computing dm phase space distribution
-0 nans in fvals
 computed f vals
 changing variables
-nonzero frv 864936
-computing p2som
 0 nan vals in p2s
 0 nan vals in p2p
 0 nan vals in p2d
 0 nan vals in p2som
-computing Js
-0 nans in Js
-computing Jp
-0 nans in Jp
-computing Jd
-0 nans in Jd
-computing Jsom
-0 nans in Jsom
-total j factor swave	 0.9913585547127797
-total j factor pwave	 0.44837776884249303
-total j factor dwave	 0.42272792641339124
-total j factor som  	 2.5676575902308563
-angular spread swave	 0.21129648545043986
-angular spread pwave	 0.24747917517930923
-angular spread dwave	 0.2585282295627364
-angular spread som  	 0.12932503565221884
+total j factor swave	 0.4893012988035318
+total j factor pwave	 0.21925133557859844
+total j factor dwave	 0.19236045784637995
+total j factor som  	 1.2538578643033784
+angular spread swave	 0.31853818443544124
+angular spread pwave	 0.37659602574616824
+angular spread dwave	 0.38808918963023686
+angular spread som  	 0.23850862605325296

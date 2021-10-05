@@ -1,0 +1,22 @@
+
+
+ einasto0-20 
+
+['einasto', 0.2, 0, 0, 0]
+1e-05
+computing phi vals
+computing dm phase space distribution
+computed f vals
+changing variables
+0 nan vals in p2s
+0 nan vals in p2p
+0 nan vals in p2d
+0 nan vals in p2som
+total j factor swave	 6.449849909717974
+total j factor pwave	 3.0863240182153473
+total j factor dwave	 4.140032506255258
+total j factor som  	 4.754551014029466
+angular spread swave	 0.34284351361283955
+angular spread pwave	 0.10636721322502152
+angular spread dwave	 0.09630358510664781
+angular spread som  	 0.07772171326437247

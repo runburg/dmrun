@@ -21,14 +21,15 @@ for param_file in sys.argv[1:]:
 lim = 1100
 PLOT = True
 ANALYTIC = False
-COMPUTE_PHI = True
-COMPUTE_FE = True
-COMPUTE_P2 = True
-COMPUTE_S = True
-COMPUTE_P = True
-COMPUTE_D = True
-COMPUTE_SOM = True
+COMPUTE_PHI = False
+COMPUTE_FE = False
+COMPUTE_P2 = False
+COMPUTE_S = False
+COMPUTE_P = False
+COMPUTE_D = False
+COMPUTE_SOM = False
 COMPARE_TO_VAN = True
+gridspec_kw = gridspec_kw={'height_ratios': [5, 1]}
 
 def nfw_gamma(r, gamma):
     return r**-gamma * (1 + r)**-(3 - gamma)
@@ -42,22 +43,6 @@ def burkert(r):
 def moore(r):
     return (r**1.4 * (1 + r)**1.4)**-1
 
-for key in rho_dict:
-    label = rho_dict[key][0]
-    if label == 'nfw':
-        rho_dict[key].append(lambda r: nfw_gamma(r, rho_dict[key][1]))
-    elif label == 'einasto':
-        rho_dict[key].append(lambda r: einasto(r, rho_dict[key][1]))
-    elif label == 'burkert':
-        rho_dict[key].append(lambda r: burkert(r))
-    elif label == 'moore':
-        rho_dict[key].append(lambda r: moore(r))
-    else:
-        print('BAD INPUT LABEL')
-
-    # rho_dict[key].append(lambda r: rho(r, rho_dict[key][1]))
-
-
 for fol in rho_dict.keys():
     try:
         os.mkdir('output/'+fol)
@@ -69,13 +54,22 @@ for fol in rho_dict.keys():
 
     print('\n\n', fol, '\n')
 
-    # Setting a range of what our r̃ values will be
     r_vals = np.logspace(-5, 3, num=lim)
-
     np.save('./rvals.npy', r_vals)
 
-    label, gamma, f0, cn, Ib, rho = rho_dict[fol]
+    label, gamma, f0, cn, Ib = rho_dict[fol]
     print(rho_dict[fol])
+
+    if label == 'nfw':
+        rho = lambda r: nfw_gamma(r, gamma)
+    elif label == 'einasto':
+        rho = lambda r: einasto(r, gamma)
+    elif label == 'burkert':
+        rho = lambda r: burkert(r)
+    elif label == 'moore':
+        rho = lambda r: moore(r)
+    else:
+        print('BAD INPUT LABEL')
 
     print(r_vals.min())
     rho0 = rho(r_vals.min()) * r_vals.min()**gamma
@@ -91,7 +85,7 @@ for fol in rho_dict.keys():
 
     def phi_x(r):
         f = lambda x: 1 / (x**2 + 1e-100) * phi_y(x)
-        return -integrate.quad(f, r, 0, points=r_vals[:150], limit=lim//2)[0]
+        return integrate.quad(f, 0, r, points=r_vals[:150], limit=lim//2)[0]
 
 
     print('computing phi vals')
@@ -106,7 +100,7 @@ for fol in rho_dict.keys():
         return rho0 * r**(2 - gamma) / ((3 - gamma) * (2 - gamma))
 
     if PLOT is True:
-        fig, (ax, ax2) = plt.subplots(nrows=2, sharex=True)
+        fig, (ax, ax2) = plt.subplots(nrows=2, sharex=True, gridspec_kw=gridspec_kw)
         ax.plot(r_vals, phi_vals, label='our phi')
         if label == 'nfw':
             ax.plot(r_vals, analytic_phi(r_vals), label='analytic', ls='--')
@@ -202,7 +196,7 @@ for fol in rho_dict.keys():
     recovered_rho_analytic = integrate.simps(4*np.sqrt(2)*np.pi*f_analytic(phi_vals)[np.newaxis, :]*np.sqrt(np.abs(phi_vals[:, np.newaxis]-phi_vals[np.newaxis, :]).T*np.tri(len(phi_vals)).T), phi_vals, axis=-1)
 
     if PLOT is True:
-        fig, (ax, ax1) = plt.subplots(nrows=2)
+        fig, (ax, ax1) = plt.subplots(nrows=2, gridspec_kw=gridspec_kw)
         ax.plot(r_vals, rho_vals, label='rho')
         if label == 'nfw':
             ax.plot(oldrs, recovered_rho_old, label='rho from kim fe')
@@ -352,7 +346,7 @@ for fol in rho_dict.keys():
 
 
     if PLOT is True:
-        fig, (ax, ax2) = plt.subplots(nrows=2, sharex=True)
+        fig, (ax, ax2) = plt.subplots(nrows=2, sharex=True, gridspec_kw=gridspec_kw)
         ax.plot(r_vals, p2_s, label='numerical s')
         ax.plot(r_vals, p2_p, label='numerical p')
         ax.plot(r_vals, p2_d, label='numerical d')
@@ -369,6 +363,7 @@ for fol in rho_dict.keys():
         ax.set_ylabel('p2 som')
         ax.legend()
         ax.set_xlim(right=1e2)
+        ax.set_ylim(bottom=1e-10)
 
         if label == 'nfw':
             ax2.plot(r_vals, (p2_som - p2_som_analytic(r_vals))/p2_som_analytic(r_vals), label='analytic som')
@@ -444,7 +439,7 @@ for fol in rho_dict.keys():
             hsomn = infile['hsom']
             radius = infile['radius']
 
-        fig, (ax, ax2) = plt.subplots(nrows=2, sharex=True)
+        fig, (ax, ax2) = plt.subplots(nrows=2, sharex=True, gridspec_kw=gridspec_kw)
 
         ax.plot(theta_vals, J_s, label='numerical s')
         ax.plot(theta_vals, J_p, label='numerical p')
@@ -462,6 +457,7 @@ for fol in rho_dict.keys():
         ax.set_xlabel('theta')
         ax.set_ylabel('J som')
         ax.set_xlim(left=1e-3, right=10)
+        ax.set_ylim(bottom=1e-6)
         # if label != 'burkert':
         #     ax.set_ylim(bottom=10, top=1e6)
 

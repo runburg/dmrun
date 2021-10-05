@@ -2,32 +2,21 @@
 
  einasto0-17 
 
-['einasto', 0.17, 0, 0, 0, <function <lambda> at 0x2adb68e61a60>]
+['einasto', 0.17, 0, 0, 0]
 1e-05
 computing phi vals
 computing dm phase space distribution
-0 nans in fvals
 computed f vals
 changing variables
-nonzero frv 709633
-computing p2som
 0 nan vals in p2s
 0 nan vals in p2p
 0 nan vals in p2d
 0 nan vals in p2som
-computing Js
-0 nans in Js
-computing Jp
-0 nans in Jp
-computing Jd
-0 nans in Jd
-computing Jsom
-0 nans in Jsom
-total j factor swave	 5.2616208586708755
-total j factor pwave	 2.6251987247406205
-total j factor dwave	 3.622188459329267
-total j factor som  	 3.6117021168183427
-angular spread swave	 0.38397076835307176
-angular spread pwave	 0.1368529468426166
-angular spread dwave	 0.12338644017701349
-angular spread som  	 0.1050779691592397
+total j factor swave	 7.877490840759105
+total j factor pwave	 3.6524987683410792
+total j factor dwave	 4.775345784028814
+total j factor som  	 6.240100837589811
+angular spread swave	 0.3042798010065496
+angular spread pwave	 0.08288014834473571
+angular spread dwave	 0.07540249521743957
+angular spread som  	 0.05792669288390023
