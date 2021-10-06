@@ -23,11 +23,11 @@ PLOT = True
 ANALYTIC = False
 COMPUTE_PHI = False
 COMPUTE_FE = False
-COMPUTE_P2 = False
-COMPUTE_S = False
-COMPUTE_P = False
-COMPUTE_D = False
-COMPUTE_SOM = False
+COMPUTE_P2 = True
+COMPUTE_S = True
+COMPUTE_P = True
+COMPUTE_D = True
+COMPUTE_SOM = True
 COMPARE_TO_VAN = True
 gridspec_kw = gridspec_kw={'height_ratios': [5, 1]}
 
@@ -140,6 +140,7 @@ for fol in rho_dict.keys():
         ax2.set_xlabel('r')
         ax2.set_ylim(bottom=-.1, top=.1)
         fig.savefig('./phi_comparison.pdf')
+        plt.close(fig)
 
     # first derivative of rho(r)
     first_derv = np.gradient(rho_vals, phi_vals)
@@ -212,6 +213,7 @@ for fol in rho_dict.keys():
         ax1.plot(r_vals, recovered_rho_new/rho(r_vals) - 1)
         ax1.set_xscale('log')
         fig.savefig('recovered_rho.pdf')
+        plt.close(fig)
 
         fig, ax = plt.subplots()
         # ax.plot(oldrs, (recovered_rho_old - rho(oldrs))/rho(oldrs), label='rho from kim fe')
@@ -223,6 +225,7 @@ for fol in rho_dict.keys():
         ax.set_ylabel('delta rho / rho')
         ax.legend()
         fig.savefig('recovered_rho_residual.pdf')
+        plt.close(fig)
 
 
         fig, (ax, ax2, ax3) = plt.subplots(nrows=3, sharex=True)
@@ -275,12 +278,13 @@ for fol in rho_dict.keys():
         ax3.set_ylabel('percent residual')
 
         fig.savefig('fecomparisons.pdf')
+        plt.close(fig)
 
 
     print('changing variables')
 
     # vvals = np.linspace(0, np.sqrt(-2*phi_vals[0]), num=lim)
-    vvals = np.logspace(-8, np.log10(np.sqrt(2 * phi_vals.max())), num=lim+1)
+    vvals = np.logspace(-4, np.log10(np.sqrt(2 * phi_vals.max())), num=lim+1)
 
     # fvals = fvals[5:-5]
     # phi_vals = phi_vals[5:-5]
@@ -294,12 +298,12 @@ for fol in rho_dict.keys():
             # j is the column index (v values)
             for j in range(len(vvals)):
                 E = vvals[j]**2 / 2 + phi_vals[i]
-                if E < 1:
+                if (E <= phi_vals.max()) & (E > 0):
                     frv[i, j] = finterp(E)
 
         print('nonzero frv', np.sum(frv.flatten() != 0))
 
-        f = i2d(r_vals, vvals, frv.T)
+        f = i2d(r_vals, vvals, frv.T.astype(np.float64))
         print('computing p2som')
 
         # swave
@@ -356,7 +360,7 @@ for fol in rho_dict.keys():
             ax.plot(r_vals, p2_som_analytic(r_vals), label='analytic som', ls='--')
 
         if COMPARE_TO_VAN is True:
-            ax.plot(rs, p2soms, label="van's", ls='-.')
+            ax.plot(rs, p2soms * 32 * np.pi**2, label="van's", ls='-.')
         ax.set_xscale('log')
         ax.set_yscale('log')
         ax.set_xlabel('r')
@@ -378,6 +382,7 @@ for fol in rho_dict.keys():
         # print('fit is', fit)
 
         fig.savefig('./p2plot.pdf')
+        plt.close(fig)
 
 
     p2_s_interp = i1d(r_vals, p2_s, fill_value='extrapolate', kind='slinear', bounds_error=False)
@@ -485,6 +490,7 @@ for fol in rho_dict.keys():
             ax2.set_ylabel('percent residual')
             ax2.set_ylim(bottom=-.1, top=.2)
         fig.savefig('./jplot.pdf')
+        plt.close(fig)
 
     # print(J_som)
     equation_8_s = integrate.simps(np.nan_to_num(J_s) * theta_vals, theta_vals)

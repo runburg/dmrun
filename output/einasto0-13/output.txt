@@ -8,15 +8,25 @@ computing phi vals
 computing dm phase space distribution
 computed f vals
 changing variables
+nonzero frv 1147838
+computing p2som
 0 nan vals in p2s
 0 nan vals in p2p
 0 nan vals in p2d
 0 nan vals in p2som
-total j factor swave	 11.444721843008743
-total j factor pwave	 5.089025140140026
-total j factor dwave	 6.356654620088963
-total j factor som  	 10.252157743749308
-angular spread swave	 0.23927618509140722
-angular spread pwave	 0.05193335043619593
-angular spread dwave	 0.04770765295428141
-angular spread som  	 0.034096986273676466
+computing Js
+0 nans in Js
+computing Jp
+0 nans in Jp
+computing Jd
+0 nans in Jd
+computing Jsom
+0 nans in Jsom
+total j factor swave	 11.444721843008821
+total j factor pwave	 18.70973650441423
+total j factor dwave	 62.5215657207949
+total j factor som  	 15.045010697358698
+angular spread swave	 0.23927618509140705
+angular spread pwave	 0.31384009207917934
+angular spread dwave	 0.3440171873534902
+angular spread som  	 0.17748340631847837
