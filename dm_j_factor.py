@@ -23,10 +23,10 @@ PLOT = True
 ANALYTIC = False
 COMPUTE_PHI = False
 COMPUTE_FE = False
-COMPUTE_P2 = True
+COMPUTE_P2 = False
 COMPUTE_S = False
 COMPUTE_P = False
-COMPUTE_D = True
+COMPUTE_D = False
 COMPUTE_SOM = False
 COMPARE_TO_VAN = True
 gridspec_kw = gridspec_kw={'height_ratios': [5, 1]}
@@ -364,6 +364,11 @@ for fol in rho_dict.keys():
 
         if label == 'nfw':
             ax.plot(r_vals, p2_som_analytic(r_vals), label='analytic som', ls='--')
+
+            if gamma == 1.4:
+                gamma = 1.4
+                n = 2
+                ax.plot(r_vals, 4.6875 * r_vals**(2 + gamma * (1 - (6 + n) / 2)), label='analytic p wave', ls='--') 
 
         if COMPARE_TO_VAN is True:
             ax.plot(rs, p2soms * 32 * np.pi**2, label="van's", ls='-.')
