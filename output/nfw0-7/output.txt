@@ -14,14 +14,8 @@ computing p2som
 0 nan vals in p2p
 0 nan vals in p2d
 0 nan vals in p2som
-computing Js
-0 nans in Js
-computing Jp
-0 nans in Jp
 computing Jd
 0 nans in Jd
-computing Jsom
-0 nans in Jsom
 total j factor swave	 0.13355632016575947
 total j factor pwave	 0.05070586364167436
 total j factor dwave	 0.034350661237018965

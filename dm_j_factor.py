@@ -24,10 +24,10 @@ ANALYTIC = False
 COMPUTE_PHI = False
 COMPUTE_FE = False
 COMPUTE_P2 = True
-COMPUTE_S = True
-COMPUTE_P = True
+COMPUTE_S = False
+COMPUTE_P = False
 COMPUTE_D = True
-COMPUTE_SOM = True
+COMPUTE_SOM = False
 COMPARE_TO_VAN = True
 gridspec_kw = gridspec_kw={'height_ratios': [5, 1]}
 
@@ -323,6 +323,10 @@ for fol in rho_dict.keys():
         if COMPUTE_D is True:
             v2 = 4 * np.pi * np.trapz(frv * vvals[np.newaxis, :]**4, vvals, axis=1) / rho(r_vals)
             v4 = 4 * np.pi * np.trapz(frv * vvals[np.newaxis, :]**6, vvals, axis=1) / rho(r_vals)
+
+            np.save('v2.npy', v2)
+            np.save('v4.npy', v4)
+
             p2_d = rho(r_vals)**2 * (2 * v4 + 10/3 * v2**2)
 
             np.save('p2_d.npy', p2_d)
@@ -344,6 +348,8 @@ for fol in rho_dict.keys():
     print(np.sum(np.isnan(p2_d)), 'nan vals in p2d')
     print(np.sum(np.isnan(p2_som)), 'nan vals in p2som')
 
+    v2 = np.load('v2.npy')
+    v4 = np.load('v4.npy')
 
     def p2_som_analytic(r):
         return cn * r ** b
@@ -383,7 +389,17 @@ for fol in rho_dict.keys():
 
         fig.savefig('./p2plot.pdf')
         plt.close(fig)
+        
+        fig, (ax, ax2) = plt.subplots(nrows=2, sharex=True)
+        ax.plot(r_vals, v2, label=r"$\langle v^2\rangle(\tilde{r})")
+        ax.plot(r_vals, v4, label=r"$\langle v^4\rangle(\tilde{r})")
+        ax.set_xscale('log')
+        ax.set_yscale('log')
+        ax.set_xlabel(r'\tilde{r}')
+        ax.legend()
 
+        fig.savefig('./v2v4.pdf')
+        plt.close(fig)
 
     p2_s_interp = i1d(r_vals, p2_s, fill_value='extrapolate', kind='slinear', bounds_error=False)
     p2_p_interp = i1d(r_vals, p2_p, fill_value='extrapolate', kind='slinear', bounds_error=False)
